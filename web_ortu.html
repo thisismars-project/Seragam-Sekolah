@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pemesanan Seragam Sekolah</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --primary: #1a5c96;
+    --primary-light: #2979c8;
+    --accent: #f5a623;
+    --accent-light: #ffc654;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --bg: #f0f4fa;
+    --white: #ffffff;
+    --text: #1e2a3a;
+    --muted: #7a8a9a;
+    --border: #d0dcea;
+    --card: #ffffff;
+    --po: #e67e22;
+    --shadow: 0 4px 24px rgba(26,92,150,0.10);
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--primary);
+    color: var(--white);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .app-header .logo {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: -0.5px;
+  }
+  .app-header .logo span { color: var(--accent); }
+
+  /* ── STEP INDICATOR ── */
+  .steps-bar {
+    background: var(--white);
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .steps {
+    display: flex;
+    align-items: center;
+    max-width: 480px;
+    margin: 0 auto;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 60%;
+    width: 80%;
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+  }
+  .step.done:not(:last-child)::after { background: var(--primary); }
+  .step-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--muted);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 1;
+    transition: all 0.3s;
+  }
+  .step.active .step-circle { background: var(--primary); color: var(--white); }
+  .step.done .step-circle { background: var(--success); color: var(--white); }
+  .step-label {
+    font-size: 0.65rem;
+    margin-top: 4px;
+    color: var(--muted);
+    font-weight: 700;
+    text-align: center;
+  }
+  .step.active .step-label { color: var(--primary); }
+  .step.done .step-label { color: var(--success); }
+
+  /* ── CONTAINER ── */
+  .page-container {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 24px 16px 40px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon {
+    width: 32px; height: 32px;
+    background: #e8f0fb;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 18px; }
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  label .req { color: var(--danger); margin-left: 2px; }
+  input[type="text"], select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    background: #f8fafd;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(41,121,200,0.12);
+    background: var(--white);
+  }
+  .select-wrapper {
+    position: relative;
+  }
+  .select-wrapper::after {
+    content: '▾';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 1rem;
+  }
+
+  /* ── BUTTON ── */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: var(--white);
+    box-shadow: 0 4px 14px rgba(26,92,150,0.25);
+  }
+  .btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-accent {
+    background: var(--accent);
+    color: var(--white);
+    box-shadow: 0 4px 14px rgba(245,166,35,0.3);
+  }
+  .btn-accent:hover { background: var(--accent-light); transform: translateY(-1px); }
+  .btn-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+  }
+  .btn-outline:hover { background: #e8f0fb; }
+  .btn-success {
+    background: var(--success);
+    color: var(--white);
+    box-shadow: 0 4px 14px rgba(39,174,96,0.3);
+  }
+  .btn-success:hover { filter: brightness(1.08); }
+  .btn-secondary {
+    background: #e8ecf2;
+    color: var(--text);
+  }
+  .btn-secondary:hover { background: #d8dce6; }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+  }
+  .btn-row .btn { flex: 1; }
+
+  /* ── PAGE visibility ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── PAGE 2: SERAGAM ITEMS ── */
+  .unit-badge {
+    display: inline-block;
+    background: var(--primary);
+    color: var(--white);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .seragam-item {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #f8fafd;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .seragam-item.selected {
+    border-color: var(--primary-light);
+    background: #edf4ff;
+    box-shadow: 0 0 0 3px rgba(41,121,200,0.1);
+  }
+  .seragam-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .seragam-checkbox {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.2s;
+    background: var(--white);
+  }
+  .seragam-item.selected .seragam-checkbox {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--white);
+  }
+  .seragam-info { flex: 1; }
+  .seragam-name {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+  .seragam-meta {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  .meta-chip {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+  .chip-id { background: #e8f0fb; color: var(--primary); }
+  .chip-ukuran { background: #fef3e0; color: #b7730a; }
+  .chip-harga { background: #e8f8ee; color: #1a7a3a; font-weight: 800; }
+  .chip-stok-ok { background: #e8f8ee; color: #1a7a3a; }
+  .chip-stok-low { background: #fef3e0; color: #b7730a; }
+  .chip-stok-empty { background: #fde8e8; color: #c0392b; }
+
+  .seragam-detail {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .seragam-item.selected .seragam-detail { display: block; }
+
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .qty-btn {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--white);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    color: var(--primary);
+  }
+  .qty-btn:hover { border-color: var(--primary); background: #e8f0fb; }
+  .qty-num {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    min-width: 32px;
+    text-align: center;
+  }
+  .qty-note {
+    font-size: 0.75rem;
+    color: var(--po);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .subtotal-bar {
+    background: #e8f0fb;
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .subtotal-label { font-size: 0.8rem; color: var(--muted); font-weight: 700; }
+  .subtotal-val {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--primary);
+  }
+
+  /* ── PAGE 3: REVIEW ── */
+  .review-header {
+    text-align: center;
+    padding: 8px 0 16px;
+  }
+  .review-header .nama-anak {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.3rem;
+    color: var(--primary);
+  }
+  .review-header .kelas-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--white);
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-top: 4px;
+  }
+
+  .review-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin: 16px 0;
+  }
+  .review-table th {
+    background: var(--primary);
+    color: var(--white);
+    padding: 10px 8px;
+    text-align: left;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+  }
+  .review-table th:first-child { border-radius: 8px 0 0 0; }
+  .review-table th:last-child { border-radius: 0 8px 0 0; text-align: right; }
+  .review-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .review-table td:last-child { text-align: right; font-weight: 700; }
+  .review-table tr:last-child td { border-bottom: none; }
+  .po-note { color: var(--po); font-size: 0.72rem; font-weight: 700; }
+
+  .total-row {
+    background: var(--primary);
+    color: var(--white);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 8px 0 16px;
+  }
+  .total-label { font-weight: 700; font-size: 0.9rem; }
+  .total-amount {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+  }
+
+  /* ── PAGE 4: NOTA ── */
+  .thankyou-banner {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+  .thankyou-banner .emoji { font-size: 2.5rem; margin-bottom: 8px; }
+  .thankyou-banner h2 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+  }
+  .thankyou-banner p { font-size: 0.85rem; opacity: 0.9; }
+
+  #nota-capture {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .nota-header {
+    text-align: center;
+    border-bottom: 2px dashed var(--border);
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+  }
+  .nota-school {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--primary);
+  }
+  .nota-title {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-weight: 700;
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .nota-no {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .nota-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+  }
+  .nota-table th {
+    background: #f0f4fa;
+    color: var(--primary);
+    padding: 8px 6px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.72rem;
+  }
+  .nota-table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #f0f4fa;
+    font-size: 0.78rem;
+  }
+  .nota-table td:last-child { text-align: right; font-weight: 700; }
+  .nota-total-row {
+    border-top: 2px solid var(--primary);
+    padding-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--primary);
+  }
+
+  .payment-info {
+    background: #fffbf0;
+    border: 2px solid var(--accent);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .payment-info strong {
+    color: var(--primary);
+    font-weight: 800;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 8px; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* ── LOADING ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.85);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    display: none;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 0.95rem;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: var(--white);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    z-index: 9999;
+    transition: transform 0.3s;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+
+  /* ── KONFIG SEKOLAH ── */
+  .info-note {
+    background: #e8f0fb;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    color: var(--primary);
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Memuat data...</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo">Seragam<span>Ku</span></div>
+  <div style="font-size:0.75rem;opacity:0.8;">Pemesanan Online</div>
+</header>
+
+<!-- STEPS BAR -->
+<div class="steps-bar" id="stepsBar">
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-circle">1</div><div class="step-label">Data Siswa</div></div>
+    <div class="step" id="step2"><div class="step-circle">2</div><div class="step-label">Pilih Seragam</div></div>
+    <div class="step" id="step3"><div class="step-circle">3</div><div class="step-label">Review</div></div>
+    <div class="step" id="step4"><div class="step-circle">4</div><div class="step-label">Nota</div></div>
+  </div>
+</div>
+
+<!-- ===== PAGE 1: DATA SISWA ===== -->
+<div class="page active" id="page1">
+  <div class="page-container">
+    <div class="card">
+      <div class="card-title"><div class="icon">📋</div>Data Siswa</div>
+      <div class="form-group">
+        <label>Nama Lengkap Anak <span class="req">*</span></label>
+        <input type="text" id="namaAnak" placeholder="Masukkan nama lengkap anak">
+      </div>
+      <div class="form-group">
+        <label>Unit <span class="req">*</span></label>
+        <div class="select-wrapper">
+          <select id="unitSelect">
+            <option value="">-- Pilih Unit --</option>
+            <option value="TK">TK (Taman Kanak-Kanak)</option>
+            <option value="SD">SD (Sekolah Dasar)</option>
+            <option value="SMP">SMP (Sekolah Menengah Pertama)</option>
+            <option value="SMA">SMA (Sekolah Menengah Atas)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="kelasGroup" style="display:none;">
+        <label>Kelas <span class="req">*</span></label>
+        <div class="select-wrapper">
+          <select id="kelasSelect">
+            <option value="">-- Pilih Kelas --</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="goToPage2()">Lanjutkan →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 2: PILIH SERAGAM ===== -->
+<div class="page" id="page2">
+  <div class="page-container">
+    <div class="card">
+      <div class="card-title"><div class="icon">👕</div>Pilih Seragam</div>
+      <div class="info-note">ℹ️ Centang seragam yang ingin dipesan, lalu atur jumlahnya.</div>
+      <span class="unit-badge" id="unitBadge"></span>
+      <div id="seragamList">
+        <div class="empty-state"><div class="icon">⏳</div><p>Memuat data seragam...</p></div>
+      </div>
+    </div>
+    <div class="card" id="totalCard" style="display:none;">
+      <div class="subtotal-bar">
+        <span class="subtotal-label">Total Estimasi</span>
+        <span class="subtotal-val" id="grandTotal">Rp 0</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="goToPage3()">Proses Pesanan →</button>
+    <br>
+    <button class="btn btn-secondary" onclick="goToPage1()" style="margin-top:8px;">← Kembali</button>
+  </div>
+</div>
+
+<!-- ===== PAGE 3: REVIEW ===== -->
+<div class="page" id="page3">
+  <div class="page-container">
+    <div class="card">
+      <div class="review-header">
+        <div class="nama-anak" id="reviewNama"></div>
+        <div class="kelas-badge" id="reviewKelas"></div>
+      </div>
+      <div class="card-title"><div class="icon">📝</div>Review Pesanan</div>
+      <table class="review-table">
+        <thead>
+          <tr>
+            <th>Seragam</th>
+            <th>Ukuran</th>
+            <th>Qty</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="reviewTableBody"></tbody>
+      </table>
+      <div class="total-row">
+        <span class="total-label">TOTAL PEMBAYARAN</span>
+        <span class="total-amount" id="reviewTotal"></span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="editPesanan()">✏️ Edit Pesanan</button>
+      <button class="btn btn-accent" onclick="buatNota()">🧾 Buat Nota</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE 4: NOTA ===== -->
+<div class="page" id="page4">
+  <div class="page-container">
+    <div class="thankyou-banner">
+      <div class="emoji">🎉</div>
+      <h2>Terima Kasih Atas Pesanan Anda!</h2>
+      <p>Pesanan telah berhasil dicatat. Silakan lakukan pembayaran sesuai instruksi di bawah.</p>
+    </div>
+
+    <div id="nota-capture">
+      <div class="nota-header">
+        <div class="nota-school" id="notaSchool">Yayasan Pendidikan</div>
+        <div class="nota-title">Nota Pemesanan Seragam</div>
+        <div class="nota-no" id="notaNo"></div>
+      </div>
+      <table class="nota-table">
+        <thead>
+          <tr>
+            <th>Nama Siswa</th>
+            <th>Kelas</th>
+            <th>Seragam</th>
+            <th>Jml</th>
+            <th>Harga</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="notaTableBody"></tbody>
+      </table>
+      <div class="nota-total-row">
+        <span>TOTAL</span>
+        <span id="notaTotal"></span>
+      </div>
+    </div>
+
+    <div class="payment-info">
+      <strong>💳 Informasi Pembayaran</strong>
+      Pembayaran dapat ditransfer langsung ke:<br>
+      <strong style="display:inline;">Bank BCA – No. Rek: 123-456-7890</strong><br>
+      a.n. Yayasan Pendidikan ABC<br><br>
+      Pesanan Anda akan kami proses setelah Anda mengirimkan bukti pembayaran ke WhatsApp Yayasan:<br>
+      <strong style="display:inline;">📱 0812-3456-7890</strong>
+    </div>
+
+    <button class="btn btn-success" onclick="screenshotNota()" style="margin-bottom:10px;">📸 Simpan sebagai Foto</button>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="pesanLagi()">🔄 Pesan Lagi</button>
+      <button class="btn btn-secondary" onclick="selesai()">✅ Selesai</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────────
+// KONFIGURASI — Ganti sesuai kebutuhan
+// ──────────────────────────────────────────
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+  NAMA_SEKOLAH: 'Yayasan Pendidikan ABC',
+  BANK_INFO: 'Bank BCA – No. Rek: 123-456-7890 a.n. Yayasan Pendidikan ABC',
+  WA_NUMBER: '0812-3456-7890',
+};
+
+// Kelas per unit
+const KELAS_MAP = {
+  TK:  ['Siswa Baru', 'PG', 'TK A', 'TK B'],
+  SD:  ['Siswa Baru', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'],
+  SMP: ['Siswa Baru', 'Kelas 7', 'Kelas 8', 'Kelas 9'],
+  SMA: ['Siswa Baru', 'Kelas 10', 'Kelas 11', 'Kelas 12'],
+};
+
+// State aplikasi
+let state = {
+  namaAnak: '',
+  unit: '',
+  kelas: '',
+  seragamData: [],   // semua data dari sheet
+  pesanan: {},       // { id: { item, qty } }
+};
+
+// ──────────────────────────────────────────
+// UTILITIES
+// ──────────────────────────────────────────
+function formatRp(n) {
+  return 'Rp ' + Number(n).toLocaleString('id-ID');
+}
+function showLoading(msg = 'Memuat...') {
+  document.getElementById('loadingText').textContent = msg;
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('step' + i);
+    el.className = 'step';
+    if (i < n) el.classList.add('done');
+    else if (i === n) el.classList.add('active');
+  }
+}
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page' + n).classList.add('active');
+  setStep(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ──────────────────────────────────────────
+// PAGE 1 LOGIC
+// ──────────────────────────────────────────
+document.getElementById('unitSelect').addEventListener('change', function() {
+  const unit = this.value;
+  const kelasGroup = document.getElementById('kelasGroup');
+  const kelasSelect = document.getElementById('kelasSelect');
+  if (!unit) { kelasGroup.style.display = 'none'; return; }
+  const kelas = KELAS_MAP[unit] || [];
+  kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+  kelas.forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k;
+    kelasSelect.appendChild(opt);
+  });
+  kelasGroup.style.display = 'block';
+});
+
+function goToPage1() {
+  showPage(1);
+}
+
+function goToPage2() {
+  const nama = document.getElementById('namaAnak').value.trim();
+  const unit = document.getElementById('unitSelect').value;
+  const kelas = document.getElementById('kelasSelect').value;
+  if (!nama) { showToast('Nama anak harus diisi!', 'error'); return; }
+  if (!unit) { showToast('Pilih unit terlebih dahulu!', 'error'); return; }
+  if (!kelas) { showToast('Pilih kelas terlebih dahulu!', 'error'); return; }
+  state.namaAnak = nama;
+  state.unit = unit;
+  state.kelas = kelas;
+  document.getElementById('unitBadge').textContent = 'Unit ' + unit;
+  showPage(2);
+  loadSeragam();
+}
+
+// ──────────────────────────────────────────
+// PAGE 2 LOGIC
+// ──────────────────────────────────────────
+async function loadSeragam() {
+  showLoading('Memuat data seragam...');
+  try {
+    const url = CONFIG.APPS_SCRIPT_URL + '?action=getStok';
+    const res = await fetch(url);
+    const data = await res.json();
+    state.seragamData = data.filter(item => {
+      const idUpper = item.ID.toUpperCase();
+      return idUpper.startsWith(state.unit + '-');
+    });
+    renderSeragamList();
+  } catch(e) {
+    // DEMO MODE — gunakan data dummy jika belum terhubung ke Apps Script
+    state.seragamData = getDummyData(state.unit);
+    renderSeragamList();
+  }
+  hideLoading();
+}
+
+function getDummyData(unit) {
+  const base = [
+    { ID: unit+'-001', Nama: 'Kemeja Putih Lengan Panjang', Ukuran: 'M', Stok: 10, Harga: 85000 },
+    { ID: unit+'-002', Nama: 'Kemeja Putih Lengan Panjang', Ukuran: 'L', Stok: 5,  Harga: 85000 },
+    { ID: unit+'-003', Nama: 'Celana/Rok ' + unit, Ukuran: 'M', Stok: 8,  Harga: 95000 },
+    { ID: unit+'-004', Nama: 'Celana/Rok ' + unit, Ukuran: 'L', Stok: 2,  Harga: 95000 },
+    { ID: unit+'-005', Nama: 'Seragam Olahraga', Ukuran: 'M', Stok: 0,  Harga: 120000 },
+    { ID: unit+'-006', Nama: 'Baju Batik ' + unit, Ukuran: 'S', Stok: 15, Harga: 110000 },
+  ];
+  return base;
+}
+
+function renderSeragamList() {
+  const container = document.getElementById('seragamList');
+  if (!state.seragamData.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">😔</div><p>Tidak ada data seragam untuk unit ' + state.unit + '</p></div>';
+    return;
+  }
+  container.innerHTML = '';
+  state.seragamData.forEach(item => {
+    const stok = parseInt(item.Stok) || 0;
+    let stokChip = '';
+    if (stok > 5) stokChip = `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`;
+    else if (stok > 0) stokChip = `<span class="meta-chip chip-stok-low">Stok: ${stok} (terbatas)</span>`;
+    else stokChip = `<span class="meta-chip chip-stok-empty">Stok Habis (PO)</span>`;
+
+    const isSelected = !!state.pesanan[item.ID];
+    const qty = state.pesanan[item.ID]?.qty || 1;
+
+    const div = document.createElement('div');
+    div.className = 'seragam-item' + (isSelected ? ' selected' : '');
+    div.id = 'item-' + item.ID.replace(/[^a-z0-9]/gi, '_');
+    div.innerHTML = `
+      <div class="seragam-item-header" onclick="toggleItem('${item.ID}')">
+        <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
+        <div class="seragam-info">
+          <div class="seragam-name">${item.Nama}</div>
+          <div class="seragam-meta">
+            <span class="meta-chip chip-id">${item.ID}</span>
+            ${item.Ukuran ? `<span class="meta-chip chip-ukuran">Ukuran: ${item.Ukuran}</span>` : ''}
+            <span class="meta-chip chip-harga">${formatRp(item.Harga)}</span>
+            ${stokChip}
+          </div>
+        </div>
+      </div>
+      <div class="seragam-detail">
+        <label style="margin-bottom:6px;">Jumlah:</label>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('${item.ID}', -1)">−</button>
+          <span class="qty-num" id="qty-${item.ID.replace(/[^a-z0-9]/gi, '_')}">${qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.ID}', 1)">+</button>
+        </div>
+        <div class="qty-note" id="ponote-${item.ID.replace(/[^a-z0-9]/gi, '_')}"></div>
+      </div>
+    `;
+    container.appendChild(div);
+    if (isSelected) updatePoNote(item.ID, qty);
+  });
+  updateGrandTotal();
+}
+
+function toggleItem(id) {
+  if (state.pesanan[id]) {
+    delete state.pesanan[id];
+  } else {
+    const item = state.seragamData.find(s => s.ID === id);
+    state.pesanan[id] = { item, qty: 1 };
+  }
+  const safeId = id.replace(/[^a-z0-9]/gi, '_');
+  const div = document.getElementById('item-' + safeId);
+  const cb = div.querySelector('.seragam-checkbox');
+  const isNow = !!state.pesanan[id];
+  div.classList.toggle('selected', isNow);
+  cb.textContent = isNow ? '✓' : '';
+  if (isNow) updatePoNote(id, 1);
+  updateGrandTotal();
+}
+
+function changeQty(id, delta) {
+  if (!state.pesanan[id]) return;
+  let qty = state.pesanan[id].qty + delta;
+  if (qty < 1) qty = 1;
+  state.pesanan[id].qty = qty;
+  const safeId = id.replace(/[^a-z0-9]/gi, '_');
+  document.getElementById('qty-' + safeId).textContent = qty;
+  updatePoNote(id, qty);
+  updateGrandTotal();
+}
+
+function updatePoNote(id, qty) {
+  const item = state.seragamData.find(s => s.ID === id);
+  const safeId = id.replace(/[^a-z0-9]/gi, '_');
+  const el = document.getElementById('ponote-' + safeId);
+  if (!el || !item) return;
+  const stok = parseInt(item.Stok) || 0;
+  if (qty > stok) {
+    const ready = stok;
+    const po = qty - stok;
+    el.textContent = stok > 0
+      ? `⚠️ ${ready} pcs ready, ${po} pcs Pre-Order (PO)`
+      : `⚠️ ${qty} pcs Pre-Order (PO) — stok habis`;
+  } else {
+    el.textContent = '';
+  }
+}
+
+function updateGrandTotal() {
+  let total = 0;
+  const hasPesanan = Object.keys(state.pesanan).length > 0;
+  Object.values(state.pesanan).forEach(p => {
+    total += p.item.Harga * p.qty;
+  });
+  document.getElementById('grandTotal').textContent = formatRp(total);
+  document.getElementById('totalCard').style.display = hasPesanan ? 'block' : 'none';
+}
+
+function goToPage3() {
+  if (!Object.keys(state.pesanan).length) {
+    showToast('Pilih minimal 1 seragam!', 'error');
+    return;
+  }
+  renderReview();
+  showPage(3);
+}
+
+// ──────────────────────────────────────────
+// PAGE 3 LOGIC
+// ──────────────────────────────────────────
+function renderReview() {
+  document.getElementById('reviewNama').textContent = state.namaAnak;
+  document.getElementById('reviewKelas').textContent = state.unit + ' — ' + state.kelas;
+  const tbody = document.getElementById('reviewTableBody');
+  tbody.innerHTML = '';
+  let total = 0;
+  Object.values(state.pesanan).forEach(p => {
+    const { item, qty } = p;
+    const stok = parseInt(item.Stok) || 0;
+    const ready = Math.min(qty, stok);
+    const po = Math.max(0, qty - stok);
+    const subtotal = item.Harga * qty;
+    total += subtotal;
+    let qtyDisplay = qty;
+    let poNote = '';
+    if (po > 0) {
+      qtyDisplay = qty;
+      poNote = `<div class="po-note">${ready > 0 ? ready+'✓ ready, ' : ''}${po}✗ PO</div>`;
+    }
+    tbody.innerHTML += `
+      <tr>
+        <td><strong>${item.Nama}</strong><br><small style="color:var(--muted)">${item.ID}</small></td>
+        <td>${item.Ukuran || '-'}</td>
+        <td>${qtyDisplay}${poNote}</td>
+        <td>${formatRp(subtotal)}</td>
+      </tr>`;
+  });
+  document.getElementById('reviewTotal').textContent = formatRp(total);
+}
+
+function editPesanan() {
+  showPage(2);
+  renderSeragamList();
+}
+
+async function buatNota() {
+  showLoading('Menyimpan pesanan...');
+  // Kirim data ke Apps Script
+  const rows = [];
+  const now = new Date();
+  const ts = now.toLocaleString('id-ID');
+  const noNota = 'N-' + now.getTime().toString().slice(-6);
+
+  Object.values(state.pesanan).forEach(p => {
+    const { item, qty } = p;
+    const stok = parseInt(item.Stok) || 0;
+    const ready = Math.min(qty, stok);
+    const po = Math.max(0, qty - stok);
+    rows.push({
+      Tanggal: ts,
+      NamaAnak: state.namaAnak,
+      Kelas: state.unit + ' - ' + state.kelas,
+      ID: item.ID,
+      NamaSeragam: item.Nama,
+      Ukuran: item.Ukuran,
+      JumlahReady: ready,
+      JumlahPO: po,
+      TotalBayar: item.Harga * qty,
+      StatusPembayaran: 'Belum Pembayaran',
+      NoNota: noNota,
+    });
+  });
+
+  try {
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'simpanPesanan', rows }),
+    });
+  } catch(e) {
+    // DEMO: lanjut tampilkan nota meski belum konek ke Apps Script
+  }
+
+  // Render nota
+  document.getElementById('notaSchool').textContent = CONFIG.NAMA_SEKOLAH;
+  document.getElementById('notaNo').textContent = 'No. ' + noNota + ' | ' + ts;
+  const tbody = document.getElementById('notaTableBody');
+  tbody.innerHTML = '';
+  let total = 0;
+  Object.values(state.pesanan).forEach(p => {
+    const { item, qty } = p;
+    const subtotal = item.Harga * qty;
+    total += subtotal;
+    const stok = parseInt(item.Stok) || 0;
+    const ready = Math.min(qty, stok);
+    const po = Math.max(0, qty - stok);
+    let qtyLabel = qty + ' pcs';
+    if (po > 0) qtyLabel += `\n(${ready} ready, ${po} PO)`;
+    tbody.innerHTML += `
+      <tr>
+        <td>${state.namaAnak}</td>
+        <td>${state.unit} - ${state.kelas}</td>
+        <td>${item.Nama} (${item.Ukuran || '-'})</td>
+        <td>${qty}${po > 0 ? ' <span style="color:var(--po);font-size:0.7rem;">('+ready+'R+'+po+'PO)</span>' : ''}</td>
+        <td>${formatRp(item.Harga)}</td>
+        <td>${formatRp(subtotal)}</td>
+      </tr>`;
+  });
+  document.getElementById('notaTotal').textContent = formatRp(total);
+
+  hideLoading();
+  showPage(4);
+}
+
+// ──────────────────────────────────────────
+// PAGE 4 LOGIC
+// ──────────────────────────────────────────
+function screenshotNota() {
+  showLoading('Menyimpan foto...');
+  const el = document.getElementById('nota-capture');
+  html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' }).then(canvas => {
+    hideLoading();
+    const link = document.createElement('a');
+    link.download = 'nota-seragam-' + state.namaAnak.replace(/\s+/g, '-') + '.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.95);
+    link.click();
+    showToast('Nota berhasil disimpan!', 'success');
+  }).catch(() => {
+    hideLoading();
+    showToast('Gagal menyimpan foto. Coba screenshot manual.', 'error');
+  });
+}
+
+function pesanLagi() {
+  resetState();
+  document.getElementById('namaAnak').value = '';
+  document.getElementById('unitSelect').value = '';
+  document.getElementById('kelasGroup').style.display = 'none';
+  showPage(1);
+}
+
+function selesai() {
+  if (confirm('Anda akan keluar dari halaman pemesanan. Yakin?')) {
+    window.close();
+    // Jika window.close() tidak berjalan (dibuka langsung):
+    document.body.innerHTML = '<div style="text-align:center;padding:60px 20px;font-family:Nunito,sans-serif;"><div style="font-size:3rem;">✅</div><h2 style="color:#1a5c96;margin:12px 0;">Terima kasih!</h2><p style="color:#7a8a9a;">Pesanan Anda telah tercatat.<br>Silakan lakukan pembayaran sesuai instruksi yang telah dikirimkan.</p></div>';
+  }
+}
+
+function resetState() {
+  state.namaAnak = '';
+  state.unit = '';
+  state.kelas = '';
+  state.seragamData = [];
+  state.pesanan = {};
+}
+
+// Init: isi nama sekolah
+document.getElementById('notaSchool').textContent = CONFIG.NAMA_SEKOLAH;
+</script>
+</body>
+</html>

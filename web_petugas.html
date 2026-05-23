@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Petugas — Seragam Sekolah</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --primary: #1a3a5c;
+    --primary-light: #24568a;
+    --accent: #f5a623;
+    --success: #27ae60;
+    --danger: #e74c3c;
+    --warning: #e67e22;
+    --info: #2980b9;
+    --bg: #0f1e30;
+    --sidebar-bg: #0a1520;
+    --card: #162233;
+    --card2: #1d2f45;
+    --border: #253a52;
+    --text: #e8f0fb;
+    --muted: #7a9bbf;
+    --white: #ffffff;
+    --shadow: 0 4px 24px rgba(0,0,0,0.3);
+    --radius: 14px;
+    --sidebar-w: 220px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 200;
+    border-right: 1px solid var(--border);
+  }
+  .sidebar-logo {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo .title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--white);
+  }
+  .sidebar-logo .sub {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  .nav-section {
+    padding: 12px 10px 0;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    padding-left: 16px;
+    margin-top: 8px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    margin: 2px 8px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+  .nav-item:hover { background: var(--card); color: var(--text); }
+  .nav-item.active { background: var(--primary-light); color: var(--white); font-weight: 700; }
+  .nav-item .nav-icon { font-size: 1.1rem; width: 22px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: var(--white);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 20px;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1.05rem;
+    color: var(--white);
+  }
+  .topbar-info {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .content {
+    padding: 24px;
+    flex: 1;
+  }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .card-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    background: var(--primary-light);
+    border-radius: 20px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ── STATS GRID ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .stat-card.blue::before { background: var(--info); }
+  .stat-card.green::before { background: var(--success); }
+  .stat-card.orange::before { background: var(--warning); }
+  .stat-card.red::before { background: var(--danger); }
+  .stat-icon { font-size: 1.5rem; margin-bottom: 8px; }
+  .stat-val {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.5rem;
+    color: var(--white);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  /* ── TABLE ── */
+  .table-wrapper { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  thead th {
+    background: var(--card2);
+    color: var(--muted);
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(37,58,82,0.5);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .status-belum { background: rgba(231,76,60,0.15); color: #ff8a7a; border: 1px solid rgba(231,76,60,0.3); }
+  .status-transfer { background: rgba(41,128,185,0.15); color: #7ec8f8; border: 1px solid rgba(41,128,185,0.3); }
+  .status-cash { background: rgba(39,174,96,0.15); color: #6ddc9a; border: 1px solid rgba(39,174,96,0.3); }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-group { margin-bottom: 14px; }
+  .form-group.span2 { grid-column: span 2; }
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  label .req { color: var(--danger); }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(36,86,138,0.2);
+  }
+  .select-wrap { position: relative; }
+  .select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary-light); color: var(--white); }
+  .btn-primary:hover { filter: brightness(1.15); }
+  .btn-success { background: var(--success); color: var(--white); }
+  .btn-success:hover { filter: brightness(1.1); }
+  .btn-accent { background: var(--accent); color: var(--white); }
+  .btn-accent:hover { filter: brightness(1.1); }
+  .btn-danger { background: var(--danger); color: var(--white); }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 6px; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+  .btn-outline:hover { border-color: var(--text); color: var(--text); }
+  .btn-block { display: flex; width: 100%; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ── STOK INPUT ── */
+  .stok-item-row {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 90px 110px auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .stok-item-row .form-group { margin-bottom: 0; }
+
+  /* ── PESANAN INPUT (petugas) ── */
+  .pesanan-seragam-list { margin: 12px 0; }
+  .pesanan-seragam-row {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 2fr 80px auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* ── LAPORAN FILTER ── */
+  .filter-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 18px;
+  }
+  .filter-bar .form-group { margin-bottom: 0; }
+
+  /* ── LOADING ── */
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 999;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    z-index: 9999;
+    transform: translateY(80px);
+    transition: transform 0.3s;
+    display: flex; align-items: center; gap: 8px;
+    max-width: 320px;
+  }
+  .toast.show { transform: translateY(0); }
+  .toast.success { border-left: 4px solid var(--success); }
+  .toast.error { border-left: 4px solid var(--danger); }
+
+  /* ── EMPTY / ERROR ── */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+  }
+  .empty-state .emoji { font-size: 2.5rem; margin-bottom: 8px; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── TOTAL ROW ── */
+  .total-box {
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.3);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+  }
+  .total-box .label { font-weight: 700; color: var(--accent); }
+  .total-box .value {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    color: var(--accent);
+  }
+
+  /* Mobile toggle */
+  .mobile-toggle {
+    display: none;
+    position: fixed;
+    bottom: 16px; right: 16px;
+    z-index: 300;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    .sidebar.open { transform: translateX(0); }
+    .main { margin-left: 0; }
+    .mobile-toggle { display: flex; align-items: center; justify-content: center; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.span2 { grid-column: span 1; }
+    .stok-item-row { grid-template-columns: 1fr; }
+    .pesanan-seragam-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+<button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="title">🏫 Panel Petugas</div>
+    <div class="sub">Manajemen Seragam</div>
+  </div>
+
+  <div class="nav-section">Menu</div>
+  <div class="nav-item active" onclick="showPanel('beranda')">
+    <span class="nav-icon">🏠</span> Beranda
+    <span class="nav-badge" id="badgeBelumBayar" style="display:none">0</span>
+  </div>
+  <div class="nav-item" onclick="showPanel('inputStok')">
+    <span class="nav-icon">📦</span> Input Stok
+  </div>
+  <div class="nav-item" onclick="showPanel('inputPesanan')">
+    <span class="nav-icon">📝</span> Input Pesanan
+  </div>
+  <div class="nav-item" onclick="showPanel('laporan')">
+    <span class="nav-icon">📊</span> Laporan
+  </div>
+
+  <div class="sidebar-footer">
+    <div style="font-weight:700;color:var(--text);font-size:0.8rem;">SeragamKu</div>
+    <div>Panel Petugas v1.0</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">🏠 Beranda</div>
+    <div class="topbar-info" id="topbarDate"></div>
+  </div>
+  <div class="content">
+
+    <!-- ═══ PANEL: BERANDA ═══ -->
+    <div class="panel active" id="panel-beranda">
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card blue">
+          <div class="stat-icon">🧾</div>
+          <div class="stat-val" id="statTotal">–</div>
+          <div class="stat-label">Total Pesanan</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-val" id="statBelum">–</div>
+          <div class="stat-label">Belum Bayar</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">✅</div>
+          <div class="stat-val" id="statBayar">–</div>
+          <div class="stat-label">Sudah Bayar</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-icon">📦</div>
+          <div class="stat-val" id="statPO">–</div>
+          <div class="stat-label">Item PO</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">⏳ Pesanan Belum Pembayaran <span class="badge" id="badgePending">0</span></div>
+          <button class="btn btn-outline" onclick="loadBeranda()">🔄 Refresh</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Tgl</th>
+                <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>Seragam</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="berandaTableBody">
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: INPUT STOK ═══ -->
+    <div class="panel" id="panel-inputStok">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📦 Input Stok Masuk</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Tanggal <span class="req">*</span></label>
+            <input type="date" id="stokTanggal">
+          </div>
+          <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="stokKeterangan" placeholder="Contoh: Kiriman konveksi batch 1">
+          </div>
+        </div>
+        <div id="stokRows"></div>
+        <button class="btn btn-outline" onclick="tambahStokRow()" style="margin-bottom:16px;">+ Tambah Item</button>
+        <button class="btn btn-success btn-block" onclick="simpanStok()">💾 Simpan Stok Masuk</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 Data Stok Saat Ini</div>
+          <button class="btn btn-outline" onclick="loadStokTable()">🔄 Refresh</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Nama Seragam</th><th>Ukuran</th><th>Stok</th><th>Harga</th></tr>
+            </thead>
+            <tbody id="stokTableBody">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px;">Memuat...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: INPUT PESANAN ═══ -->
+    <div class="panel" id="panel-inputPesanan">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📝 Input Pesanan Manual</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nama Anak <span class="req">*</span></label>
+            <input type="text" id="pNamaAnak" placeholder="Nama lengkap">
+          </div>
+          <div class="form-group">
+            <label>Unit <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="pUnit" onchange="onUnitChangePetugas()">
+                <option value="">-- Pilih Unit --</option>
+                <option value="TK">TK</option>
+                <option value="SD">SD</option>
+                <option value="SMP">SMP</option>
+                <option value="SMA">SMA</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Kelas <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="pKelas">
+                <option value="">-- Pilih Unit Dulu --</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Status Pembayaran <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="pStatus">
+                <option value="Belum Pembayaran">⏳ Belum Pembayaran</option>
+                <option value="Cash">💵 Cash</option>
+                <option value="Transfer">🏦 Transfer</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <label style="margin-bottom:8px;display:block;">Seragam yang Dipesan <span class="req">*</span></label>
+        <div id="pSeragamList" class="pesanan-seragam-list">
+          <div class="empty-state"><div class="emoji">👕</div><p>Pilih unit terlebih dahulu</p></div>
+        </div>
+        <button class="btn btn-outline" id="btnTambahSeragam" style="display:none;margin-bottom:14px;" onclick="tambahSeragamRow()">+ Tambah Item Seragam</button>
+
+        <div class="total-box">
+          <span class="label">Total Pembayaran</span>
+          <span class="value" id="pTotal">Rp 0</span>
+        </div>
+        <br>
+        <button class="btn btn-success btn-block" onclick="simpanPesananPetugas()">💾 Simpan Pesanan</button>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL: LAPORAN ═══ -->
+    <div class="panel" id="panel-laporan">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 Laporan Pesanan</div>
+        </div>
+        <div class="filter-bar">
+          <div class="form-group">
+            <label>Dari Tanggal</label>
+            <input type="date" id="filterDari">
+          </div>
+          <div class="form-group">
+            <label>Sampai Tanggal</label>
+            <input type="date" id="filterSampai">
+          </div>
+          <div class="form-group">
+            <label>Urutkan</label>
+            <div class="select-wrap">
+              <select id="filterSort">
+                <option value="tanggal">Tanggal</option>
+                <option value="nama">Nama Siswa</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <div class="select-wrap">
+              <select id="filterStatus">
+                <option value="">Semua</option>
+                <option value="Belum Pembayaran">Belum Bayar</option>
+                <option value="Cash">Cash</option>
+                <option value="Transfer">Transfer</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-end;">
+            <button class="btn btn-primary" onclick="loadLaporan()">🔍 Tampilkan</button>
+            <button class="btn btn-success" onclick="downloadExcel()">⬇️ Excel</button>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>ID</th>
+                <th>Seragam</th>
+                <th>Ukuran</th>
+                <th>Jml Ready</th>
+                <th>Jml PO</th>
+                <th>Total</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="laporanTableBody">
+              <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:30px;">Pilih rentang tanggal dan klik Tampilkan</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="laporanSummary" style="display:none;" class="total-box">
+          <span class="label" id="laporanCount"></span>
+          <span class="value" id="laporanTotal"></span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ──────────────────────────────────────────
+// KONFIGURASI
+// ──────────────────────────────────────────
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+};
+
+const KELAS_MAP = {
+  TK:  ['Siswa Baru', 'PG', 'TK A', 'TK B'],
+  SD:  ['Siswa Baru', 'Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'],
+  SMP: ['Siswa Baru', 'Kelas 7', 'Kelas 8', 'Kelas 9'],
+  SMA: ['Siswa Baru', 'Kelas 10', 'Kelas 11', 'Kelas 12'],
+};
+
+let allPesanan = [];
+let allStok = [];
+let allLaporan = [];
+let stokRowCount = 0;
+let pSeragamRows = [];
+
+// ──────────────────────────────────────────
+// UTILITIES
+// ──────────────────────────────────────────
+function formatRp(n) {
+  return 'Rp ' + Number(n||0).toLocaleString('id-ID');
+}
+function formatDate(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString('id-ID', { day:'2-digit', month:'short', year:'numeric' });
+}
+function showLoading() { document.getElementById('loadingOverlay').classList.add('show'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ──────────────────────────────────────────
+// NAVIGASI
+// ──────────────────────────────────────────
+const panelTitles = {
+  beranda: '🏠 Beranda',
+  inputStok: '📦 Input Stok',
+  inputPesanan: '📝 Input Pesanan',
+  laporan: '📊 Laporan',
+};
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+  document.getElementById('topbarTitle').textContent = panelTitles[id] || '';
+  document.getElementById('sidebar').classList.remove('open');
+
+  // Load data sesuai panel
+  if (id === 'beranda') loadBeranda();
+  if (id === 'inputStok') { loadStokTable(); if (!document.getElementById('stokRows').children.length) tambahStokRow(); }
+  if (id === 'inputPesanan') loadStokForPesanan();
+}
+
+// ──────────────────────────────────────────
+// API CALLS
+// ──────────────────────────────────────────
+async function apiFetch(params) {
+  try {
+    const url = CONFIG.APPS_SCRIPT_URL + '?' + new URLSearchParams(params);
+    const res = await fetch(url);
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
+}
+async function apiPost(body) {
+  try {
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return await res.json();
+  } catch(e) {
+    return null;
+  }
+}
+
+// ──────────────────────────────────────────
+// BERANDA
+// ──────────────────────────────────────────
+async function loadBeranda() {
+  showLoading();
+  let data = await apiFetch({ action: 'getPesanan' });
+  if (!data) data = getDummyPesanan(); // demo fallback
+  allPesanan = data;
+
+  const belum = data.filter(r => r.StatusPembayaran === 'Belum Pembayaran');
+  const bayar = data.filter(r => r.StatusPembayaran !== 'Belum Pembayaran');
+  const po = data.filter(r => (parseInt(r.JumlahPO)||0) > 0);
+
+  document.getElementById('statTotal').textContent = data.length;
+  document.getElementById('statBelum').textContent = belum.length;
+  document.getElementById('statBayar').textContent = bayar.length;
+  document.getElementById('statPO').textContent = po.length;
+  document.getElementById('badgePending').textContent = belum.length;
+  document.getElementById('badgeBelumBayar').textContent = belum.length;
+  document.getElementById('badgeBelumBayar').style.display = belum.length > 0 ? 'inline' : 'none';
+
+  const tbody = document.getElementById('berandaTableBody');
+  if (!belum.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">✅</div><p>Semua pesanan sudah terbayar!</p></div></td></tr>';
+  } else {
+    tbody.innerHTML = belum.map((r, i) => `
+      <tr>
+        <td style="font-size:0.78rem;color:var(--muted)">${r.Tanggal || '-'}</td>
+        <td><strong>${r.NamaAnak}</strong></td>
+        <td>${r.Kelas}</td>
+        <td>
+          <div>${r.NamaSeragam} <span style="color:var(--muted);font-size:0.78rem;">${r.ID}</span></div>
+          <div style="font-size:0.75rem;color:var(--muted)">Ukuran: ${r.Ukuran || '-'} | Qty: ${(r.JumlahReady||0)}${(r.JumlahPO||0)>0?' +'+r.JumlahPO+'PO':''}</div>
+        </td>
+        <td><strong>${formatRp(r.TotalBayar)}</strong></td>
+        <td><span class="status-badge status-belum">⏳ Belum Bayar</span></td>
+        <td>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn-sm btn-success" onclick="ubahStatus(${i},'Cash')">💵 Cash</button>
+            <button class="btn btn-sm btn-primary" onclick="ubahStatus(${i},'Transfer')">🏦 TF</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  }
+  hideLoading();
+}
+
+async function ubahStatus(idx, status) {
+  const belum = allPesanan.filter(r => r.StatusPembayaran === 'Belum Pembayaran');
+  const row = belum[idx];
+  if (!row) return;
+  if (!confirm(`Ubah status ${row.NamaAnak} (${row.NamaSeragam}) menjadi "${status}"?`)) return;
+  showLoading();
+  const result = await apiPost({ action: 'ubahStatus', rowIndex: row._rowIndex, status });
+  if (result) {
+    showToast('Status berhasil diubah ke ' + status, 'success');
+  } else {
+    showToast('Gagal terhubung ke server. (Demo mode)', 'error');
+    row.StatusPembayaran = status; // demo: update lokal
+  }
+  loadBeranda();
+}
+
+// ──────────────────────────────────────────
+// INPUT STOK
+// ──────────────────────────────────────────
+function tambahStokRow() {
+  const container = document.getElementById('stokRows');
+  const id = ++stokRowCount;
+  const div = document.createElement('div');
+  div.className = 'stok-item-row';
+  div.id = 'stokRow-' + id;
+  div.innerHTML = `
+    <div class="form-group">
+      <label>ID Seragam</label>
+      <input type="text" placeholder="cth: TK-001" id="sId-${id}">
+    </div>
+    <div class="form-group">
+      <label>Nama Seragam</label>
+      <input type="text" placeholder="Nama seragam" id="sNama-${id}">
+    </div>
+    <div class="form-group">
+      <label>Ukuran</label>
+      <input type="text" placeholder="M, L, XL" id="sUkuran-${id}">
+    </div>
+    <div class="form-group">
+      <label>Jumlah Stok</label>
+      <input type="number" min="0" placeholder="0" id="sJml-${id}">
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="hapusStokRow(${id})" style="margin-top:18px;">🗑</button>
+  `;
+  container.appendChild(div);
+}
+function hapusStokRow(id) {
+  document.getElementById('stokRow-' + id)?.remove();
+}
+async function simpanStok() {
+  const tgl = document.getElementById('stokTanggal').value;
+  const ket = document.getElementById('stokKeterangan').value;
+  if (!tgl) { showToast('Isi tanggal dahulu!', 'error'); return; }
+  const rows = [];
+  document.querySelectorAll('[id^="sId-"]').forEach(el => {
+    const n = el.id.split('-').pop();
+    const id = el.value.trim();
+    const nama = document.getElementById('sNama-' + n)?.value.trim();
+    const ukuran = document.getElementById('sUkuran-' + n)?.value.trim();
+    const jml = parseInt(document.getElementById('sJml-' + n)?.value) || 0;
+    if (id && jml > 0) rows.push({ Tanggal: tgl, Keterangan: ket, ID: id, Nama: nama, Ukuran: ukuran, JumlahMasuk: jml });
+  });
+  if (!rows.length) { showToast('Tambahkan minimal 1 item stok!', 'error'); return; }
+  showLoading();
+  const result = await apiPost({ action: 'simpanStok', rows });
+  hideLoading();
+  if (result?.success || result === null) {
+    showToast(result?.success ? 'Stok berhasil disimpan!' : 'Demo: stok tersimpan lokal', 'success');
+    document.getElementById('stokRows').innerHTML = '';
+    stokRowCount = 0;
+    tambahStokRow();
+    loadStokTable();
+  } else {
+    showToast('Gagal menyimpan stok', 'error');
+  }
+}
+async function loadStokTable() {
+  const tbody = document.getElementById('stokTableBody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Memuat...</td></tr>';
+  let data = await apiFetch({ action: 'getStok' });
+  if (!data) data = getDummyStok();
+  allStok = data;
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="emoji">📦</div><p>Belum ada data stok</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td><span style="background:#1d3a5c;padding:2px 8px;border-radius:6px;font-size:0.78rem;font-weight:700;">${r.ID}</span></td>
+      <td>${r.Nama}</td>
+      <td>${r.Ukuran || '-'}</td>
+      <td><strong style="color:${parseInt(r.Stok)<=0?'var(--danger)':parseInt(r.Stok)<=5?'var(--warning)':'var(--success)'}">${r.Stok}</strong></td>
+      <td>${formatRp(r.Harga)}</td>
+    </tr>`).join('');
+}
+
+// ──────────────────────────────────────────
+// INPUT PESANAN (PETUGAS)
+// ──────────────────────────────────────────
+function onUnitChangePetugas() {
+  const unit = document.getElementById('pUnit').value;
+  const sel = document.getElementById('pKelas');
+  sel.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+  (KELAS_MAP[unit] || []).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = k;
+    sel.appendChild(o);
+  });
+  pSeragamRows = [];
+  renderPSeragamList();
+  document.getElementById('btnTambahSeragam').style.display = unit ? 'inline-flex' : 'none';
+}
+
+async function loadStokForPesanan() {
+  let data = await apiFetch({ action: 'getStok' });
+  allStok = data || getDummyStok();
+}
+
+function tambahSeragamRow() {
+  const unit = document.getElementById('pUnit').value;
+  if (!unit) { showToast('Pilih unit dahulu!', 'error'); return; }
+  const filtered = allStok.filter(s => s.ID.toUpperCase().startsWith(unit + '-'));
+  const rid = Date.now();
+  pSeragamRows.push({ rid, seragamId: '', qty: 1, stok: allStok });
+  renderPSeragamList();
+  updatePTotal();
+}
+
+function renderPSeragamList() {
+  const unit = document.getElementById('pUnit').value;
+  const filtered = allStok.filter(s => s.ID.toUpperCase().startsWith(unit + '-'));
+  const container = document.getElementById('pSeragamList');
+  if (!pSeragamRows.length) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">👕</div><p>Klik "+ Tambah Item Seragam" untuk menambahkan</p></div>';
+    return;
+  }
+  container.innerHTML = pSeragamRows.map((row, i) => `
+    <div class="pesanan-seragam-row">
+      <div class="select-wrap">
+        <select onchange="onPSeragamChange(${i}, this.value)">
+          <option value="">-- Pilih Seragam --</option>
+          ${filtered.map(s => `<option value="${s.ID}" ${s.ID === row.seragamId ? 'selected' : ''}>${s.Nama} (${s.Ukuran||'-'}) — Stok: ${s.Stok}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="btn btn-outline btn-sm" onclick="changePQty(${i},-1)">−</button>
+        <span style="font-family:Nunito;font-weight:900;min-width:28px;text-align:center;">${row.qty}</span>
+        <button class="btn btn-outline btn-sm" onclick="changePQty(${i},1)">+</button>
+      </div>
+      <button class="btn btn-danger btn-sm" onclick="hapusPSeragam(${i})">🗑</button>
+    </div>
+  `).join('');
+  updatePTotal();
+}
+
+function onPSeragamChange(i, val) {
+  pSeragamRows[i].seragamId = val;
+  updatePTotal();
+}
+function changePQty(i, delta) {
+  pSeragamRows[i].qty = Math.max(1, (pSeragamRows[i].qty || 1) + delta);
+  renderPSeragamList();
+}
+function hapusPSeragam(i) {
+  pSeragamRows.splice(i, 1);
+  renderPSeragamList();
+}
+function updatePTotal() {
+  let total = 0;
+  pSeragamRows.forEach(row => {
+    const item = allStok.find(s => s.ID === row.seragamId);
+    if (item) total += (item.Harga || 0) * row.qty;
+  });
+  document.getElementById('pTotal').textContent = formatRp(total);
+}
+
+async function simpanPesananPetugas() {
+  const nama = document.getElementById('pNamaAnak').value.trim();
+  const unit = document.getElementById('pUnit').value;
+  const kelas = document.getElementById('pKelas').value;
+  const status = document.getElementById('pStatus').value;
+  if (!nama || !unit || !kelas) { showToast('Lengkapi data siswa!', 'error'); return; }
+  const validRows = pSeragamRows.filter(r => r.seragamId);
+  if (!validRows.length) { showToast('Tambahkan minimal 1 seragam!', 'error'); return; }
+
+  const now = new Date();
+  const ts = now.toLocaleString('id-ID');
+  const rows = validRows.map(row => {
+    const item = allStok.find(s => s.ID === row.seragamId);
+    const stok = parseInt(item?.Stok) || 0;
+    const ready = Math.min(row.qty, stok);
+    const po = Math.max(0, row.qty - stok);
+    return {
+      Tanggal: ts,
+      NamaAnak: nama,
+      Kelas: unit + ' - ' + kelas,
+      ID: item.ID,
+      NamaSeragam: item.Nama,
+      Ukuran: item.Ukuran,
+      JumlahReady: ready,
+      JumlahPO: po,
+      TotalBayar: (item.Harga || 0) * row.qty,
+      StatusPembayaran: status,
+    };
+  });
+
+  showLoading();
+  const result = await apiPost({ action: 'simpanPesanan', rows });
+  hideLoading();
+  showToast(result?.success ? 'Pesanan berhasil disimpan!' : 'Demo: pesanan tercatat', 'success');
+  // Reset form
+  document.getElementById('pNamaAnak').value = '';
+  document.getElementById('pUnit').value = '';
+  document.getElementById('pKelas').innerHTML = '<option value="">-- Pilih Unit Dulu --</option>';
+  pSeragamRows = [];
+  renderPSeragamList();
+  document.getElementById('btnTambahSeragam').style.display = 'none';
+  document.getElementById('pTotal').textContent = 'Rp 0';
+}
+
+// ──────────────────────────────────────────
+// LAPORAN
+// ──────────────────────────────────────────
+async function loadLaporan() {
+  showLoading();
+  const dari = document.getElementById('filterDari').value;
+  const sampai = document.getElementById('filterSampai').value;
+  const sort = document.getElementById('filterSort').value;
+  const statusFilter = document.getElementById('filterStatus').value;
+
+  let data = await apiFetch({ action: 'getLaporan', dari, sampai, sort, status: statusFilter });
+  if (!data) data = getDummyPesanan();
+  allLaporan = data;
+
+  // Filter lokal (jika API belum diimplementasi filter)
+  if (dari || sampai || statusFilter) {
+    data = data.filter(r => {
+      if (statusFilter && r.StatusPembayaran !== statusFilter) return false;
+      return true;
+    });
+  }
+  // Sort
+  if (sort === 'nama') data.sort((a,b) => (a.NamaAnak||'').localeCompare(b.NamaAnak||''));
+
+  const tbody = document.getElementById('laporanTableBody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="emoji">📊</div><p>Tidak ada data sesuai filter</p></div></td></tr>';
+    document.getElementById('laporanSummary').style.display = 'none';
+    hideLoading();
+    return;
+  }
+  let totalAll = 0;
+  tbody.innerHTML = data.map(r => {
+    totalAll += parseInt(r.TotalBayar) || 0;
+    const stBadge = r.StatusPembayaran === 'Belum Pembayaran'
+      ? `<span class="status-badge status-belum">⏳ Belum Bayar</span>`
+      : r.StatusPembayaran === 'Transfer'
+      ? `<span class="status-badge status-transfer">🏦 Transfer</span>`
+      : `<span class="status-badge status-cash">💵 Cash</span>`;
+    return `<tr>
+      <td style="font-size:0.75rem;white-space:nowrap">${r.Tanggal||'-'}</td>
+      <td><strong>${r.NamaAnak}</strong></td>
+      <td>${r.Kelas}</td>
+      <td><span style="background:#1d3a5c;padding:2px 6px;border-radius:4px;font-size:0.75rem;">${r.ID}</span></td>
+      <td>${r.NamaSeragam}</td>
+      <td>${r.Ukuran||'-'}</td>
+      <td>${r.JumlahReady||0}</td>
+      <td>${(r.JumlahPO||0)>0?'<span style="color:var(--warning);font-weight:700;">'+r.JumlahPO+'</span>':'0'}</td>
+      <td><strong>${formatRp(r.TotalBayar)}</strong></td>
+      <td>${stBadge}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('laporanCount').textContent = data.length + ' baris data';
+  document.getElementById('laporanTotal').textContent = formatRp(totalAll);
+  document.getElementById('laporanSummary').style.display = 'flex';
+  hideLoading();
+}
+
+function downloadExcel() {
+  if (!allLaporan.length) { showToast('Tampilkan laporan dulu!', 'error'); return; }
+  const headers = ['Timestamp','Nama Siswa','Kelas','ID','Seragam','Ukuran','Jml Ready','Jml PO','Total Bayar','Status Pembayaran'];
+  const rows = allLaporan.map(r => [
+    r.Tanggal, r.NamaAnak, r.Kelas, r.ID, r.NamaSeragam, r.Ukuran,
+    r.JumlahReady, r.JumlahPO, r.TotalBayar, r.StatusPembayaran
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Laporan');
+  XLSX.writeFile(wb, 'laporan-seragam-' + new Date().toISOString().slice(0,10) + '.xlsx');
+  showToast('File Excel berhasil diunduh!', 'success');
+}
+
+// ──────────────────────────────────────────
+// DUMMY DATA (untuk demo sebelum konek ke GAS)
+// ──────────────────────────────────────────
+function getDummyPesanan() {
+  return [
+    { Tanggal:'23/05/2026 08:10', NamaAnak:'Budi Santoso', Kelas:'SD - Kelas 1', ID:'SD-001', NamaSeragam:'Kemeja Putih L.Panjang', Ukuran:'M', JumlahReady:2, JumlahPO:0, TotalBayar:170000, StatusPembayaran:'Belum Pembayaran', _rowIndex:2 },
+    { Tanggal:'23/05/2026 09:15', NamaAnak:'Siti Rahma', Kelas:'TK - TK A', ID:'TK-003', NamaSeragam:'Seragam Harian TK', Ukuran:'S', JumlahReady:1, JumlahPO:1, TotalBayar:180000, StatusPembayaran:'Belum Pembayaran', _rowIndex:3 },
+    { Tanggal:'22/05/2026 14:00', NamaAnak:'Ahmad Fauzi', Kelas:'SMP - Kelas 8', ID:'SMP-002', NamaSeragam:'Celana Panjang Abu', Ukuran:'L', JumlahReady:2, JumlahPO:0, TotalBayar:200000, StatusPembayaran:'Cash', _rowIndex:4 },
+  ];
+}
+function getDummyStok() {
+  return [
+    { ID:'TK-001', Nama:'Kemeja Putih TK', Ukuran:'S', Stok:12, Harga:80000 },
+    { ID:'TK-002', Nama:'Kemeja Putih TK', Ukuran:'M', Stok:8, Harga:80000 },
+    { ID:'SD-001', Nama:'Kemeja Putih L.Panjang', Ukuran:'M', Stok:20, Harga:85000 },
+    { ID:'SD-002', Nama:'Kemeja Putih L.Panjang', Ukuran:'L', Stok:5, Harga:85000 },
+    { ID:'SMP-001', Nama:'Kemeja Putih SMP', Ukuran:'L', Stok:10, Harga:90000 },
+    { ID:'SMA-001', Nama:'Kemeja Putih SMA', Ukuran:'XL', Stok:0, Harga:95000 },
+  ];
+}
+
+// ──────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────
+document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+// Set default tanggal hari ini
+const today = new Date().toISOString().slice(0,10);
+document.getElementById('stokTanggal').value = today;
+document.getElementById('filterDari').value = today;
+document.getElementById('filterSampai').value = today;
+
+// Load beranda di awal
+loadBeranda();
+tambahStokRow();
+</script>
+</body>
+</html>
