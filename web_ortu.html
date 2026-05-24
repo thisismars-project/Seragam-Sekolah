@@ -255,23 +255,81 @@
     margin-bottom: 16px;
   }
 
-  .seragam-item {
+  /* ── ACCORDION GROUP ── */
+  .seragam-group {
     border: 2px solid var(--border);
     border-radius: 12px;
-    padding: 14px;
     margin-bottom: 12px;
+    overflow: hidden;
     background: #f8fafd;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .seragam-group.has-selected {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(41,121,200,0.1);
+  }
+  .seragam-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    background: #f8fafd;
+    transition: background 0.2s;
+  }
+  .seragam-group-header:hover { background: #edf4ff; }
+  .seragam-group.open .seragam-group-header { background: #edf4ff; }
+  .seragam-group-title {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .seragam-group-title .badge-selected {
+    background: var(--primary);
+    color: white;
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 800;
+  }
+  .seragam-group-arrow {
+    font-size: 0.8rem;
+    color: var(--muted);
+    transition: transform 0.25s;
+  }
+  .seragam-group.open .seragam-group-arrow { transform: rotate(180deg); }
+
+  .seragam-group-body {
+    display: none;
+    padding: 0 12px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .seragam-group.open .seragam-group-body { display: block; }
+
+  /* ── UKURAN ITEM ── */
+  .seragam-item {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-top: 8px;
+    background: var(--white);
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .seragam-item.selected {
     border-color: var(--primary-light);
     background: #edf4ff;
-    box-shadow: 0 0 0 3px rgba(41,121,200,0.1);
+    box-shadow: 0 0 0 2px rgba(41,121,200,0.1);
   }
   .seragam-item-header {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
+    cursor: pointer;
   }
   .seragam-checkbox {
     width: 20px; height: 20px;
@@ -280,7 +338,6 @@
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    margin-top: 2px;
     transition: all 0.2s;
     background: var(--white);
   }
@@ -293,12 +350,12 @@
   .seragam-name {
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text);
   }
   .seragam-meta {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-top: 4px;
     flex-wrap: wrap;
   }
@@ -317,8 +374,8 @@
 
   .seragam-detail {
     display: none;
-    margin-top: 12px;
-    padding-top: 12px;
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 1px solid var(--border);
   }
   .seragam-item.selected .seragam-detail { display: block; }
@@ -783,7 +840,7 @@
 // KONFIGURASI — Ganti sesuai kebutuhan
 // ──────────────────────────────────────────
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxzdz0HrgpGGBq0gD7OIAvQDwBT4MYrZRfi_zNp99hwXOuD2YAkRVE1jC6mb9cCR4Jz/exec',
   NAMA_SEKOLAH: 'Yayasan Pendidikan ABC',
   BANK_INFO: 'Bank BCA – No. Rek: 123-456-7890 a.n. Yayasan Pendidikan ABC',
   WA_NUMBER: '0812-3456-7890',
@@ -886,15 +943,21 @@ async function loadSeragam() {
     const url = CONFIG.APPS_SCRIPT_URL + '?action=getStok';
     const res = await fetch(url);
     const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('Data tidak valid: ' + JSON.stringify(data));
     state.seragamData = data.filter(item => {
-      const idUpper = item.ID.toUpperCase();
-      return idUpper.startsWith(state.unit + '-');
+      const idUpper = String(item.ID).toUpperCase();
+      return idUpper.startsWith(state.unit.toUpperCase() + '-');
     });
     renderSeragamList();
   } catch(e) {
-    // DEMO MODE — gunakan data dummy jika belum terhubung ke Apps Script
-    state.seragamData = getDummyData(state.unit);
-    renderSeragamList();
+    hideLoading();
+    document.getElementById('seragamList').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">❌</div>
+        <p style="color:red;font-weight:700;">Gagal memuat data seragam</p>
+        <p style="font-size:0.8rem;margin-top:8px;">${e.message}</p>
+      </div>`;
+    return;
   }
   hideLoading();
 }
@@ -917,47 +980,86 @@ function renderSeragamList() {
     container.innerHTML = '<div class="empty-state"><div class="icon">😔</div><p>Tidak ada data seragam untuk unit ' + state.unit + '</p></div>';
     return;
   }
-  container.innerHTML = '';
+
+  // Kelompokkan item berdasarkan Nama
+  const groups = {};
   state.seragamData.forEach(item => {
-    const stok = parseInt(item.Stok) || 0;
-    let stokChip = '';
-    if (stok > 5) stokChip = `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`;
-    else if (stok > 0) stokChip = `<span class="meta-chip chip-stok-low">Stok: ${stok} (terbatas)</span>`;
-    else stokChip = `<span class="meta-chip chip-stok-empty">Stok Habis (PO)</span>`;
-
-    const isSelected = !!state.pesanan[item.ID];
-    const qty = state.pesanan[item.ID]?.qty || 1;
-
-    const div = document.createElement('div');
-    div.className = 'seragam-item' + (isSelected ? ' selected' : '');
-    div.id = 'item-' + item.ID.replace(/[^a-z0-9]/gi, '_');
-    div.innerHTML = `
-      <div class="seragam-item-header" onclick="toggleItem('${item.ID}')">
-        <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
-        <div class="seragam-info">
-          <div class="seragam-name">${item.Nama}</div>
-          <div class="seragam-meta">
-            <span class="meta-chip chip-id">${item.ID}</span>
-            ${item.Ukuran ? `<span class="meta-chip chip-ukuran">Ukuran: ${item.Ukuran}</span>` : ''}
-            <span class="meta-chip chip-harga">${formatRp(item.Harga)}</span>
-            ${stokChip}
-          </div>
-        </div>
-      </div>
-      <div class="seragam-detail">
-        <label style="margin-bottom:6px;">Jumlah:</label>
-        <div class="qty-control">
-          <button class="qty-btn" onclick="changeQty('${item.ID}', -1)">−</button>
-          <span class="qty-num" id="qty-${item.ID.replace(/[^a-z0-9]/gi, '_')}">${qty}</span>
-          <button class="qty-btn" onclick="changeQty('${item.ID}', 1)">+</button>
-        </div>
-        <div class="qty-note" id="ponote-${item.ID.replace(/[^a-z0-9]/gi, '_')}"></div>
-      </div>
-    `;
-    container.appendChild(div);
-    if (isSelected) updatePoNote(item.ID, qty);
+    if (!groups[item.Nama]) groups[item.Nama] = [];
+    groups[item.Nama].push(item);
   });
+
+  container.innerHTML = '';
+
+  Object.entries(groups).forEach(([namaGroup, items]) => {
+    const groupKey = namaGroup.replace(/[^a-z0-9]/gi, '_');
+    const selectedCount = items.filter(it => !!state.pesanan[it.ID]).length;
+    const isOpen = selectedCount > 0 || state.openGroups?.[groupKey];
+
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'seragam-group' + (isOpen ? ' open' : '') + (selectedCount > 0 ? ' has-selected' : '');
+    groupDiv.id = 'group-' + groupKey;
+
+    const itemsHTML = items.map(item => {
+      const stok = parseInt(item.Stok) || 0;
+      const isSelected = !!state.pesanan[item.ID];
+      const qty = state.pesanan[item.ID]?.qty || 1;
+      const safeId = item.ID.replace(/[^a-z0-9]/gi, '_');
+
+      let stokChip = '';
+      if (stok > 5) stokChip = `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`;
+      else if (stok > 0) stokChip = `<span class="meta-chip chip-stok-low">Stok: ${stok} (terbatas)</span>`;
+      else stokChip = `<span class="meta-chip chip-stok-empty">Stok Habis (PO)</span>`;
+
+      return `
+        <div class="seragam-item${isSelected ? ' selected' : ''}" id="item-${safeId}">
+          <div class="seragam-item-header" onclick="toggleItem('${item.ID}')">
+            <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
+            <div class="seragam-info">
+              <div class="seragam-name">Ukuran ${item.Ukuran || '-'}</div>
+              <div class="seragam-meta">
+                <span class="meta-chip chip-harga">${formatRp(item.Harga)}</span>
+                ${stokChip}
+              </div>
+            </div>
+          </div>
+          <div class="seragam-detail">
+            <label style="margin-bottom:6px;">Jumlah:</label>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="changeQty('${item.ID}', -1)">−</button>
+              <span class="qty-num" id="qty-${safeId}">${qty}</span>
+              <button class="qty-btn" onclick="changeQty('${item.ID}', 1)">+</button>
+            </div>
+            <div class="qty-note" id="ponote-${safeId}"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    groupDiv.innerHTML = `
+      <div class="seragam-group-header" onclick="toggleGroup('${groupKey}')">
+        <div class="seragam-group-title">
+          👕 ${namaGroup}
+          ${selectedCount > 0 ? `<span class="badge-selected">${selectedCount} dipilih</span>` : ''}
+        </div>
+        <span class="seragam-group-arrow">▼</span>
+      </div>
+      <div class="seragam-group-body">${itemsHTML}</div>
+    `;
+    container.appendChild(groupDiv);
+
+    // Update PO notes for selected items
+    items.forEach(item => {
+      if (state.pesanan[item.ID]) updatePoNote(item.ID, state.pesanan[item.ID].qty);
+    });
+  });
+
   updateGrandTotal();
+}
+
+function toggleGroup(groupKey) {
+  if (!state.openGroups) state.openGroups = {};
+  const groupDiv = document.getElementById('group-' + groupKey);
+  const isOpen = groupDiv.classList.toggle('open');
+  state.openGroups[groupKey] = isOpen;
 }
 
 function toggleItem(id) {
@@ -974,6 +1076,24 @@ function toggleItem(id) {
   div.classList.toggle('selected', isNow);
   cb.textContent = isNow ? '✓' : '';
   if (isNow) updatePoNote(id, 1);
+
+  // Update group badge & style
+  const item = state.seragamData.find(s => s.ID === id);
+  if (item) {
+    const groupKey = item.Nama.replace(/[^a-z0-9]/gi, '_');
+    const groupDiv = document.getElementById('group-' + groupKey);
+    if (groupDiv) {
+      const groupItems = state.seragamData.filter(s => s.Nama === item.Nama);
+      const selectedCount = groupItems.filter(it => !!state.pesanan[it.ID]).length;
+      groupDiv.classList.toggle('has-selected', selectedCount > 0);
+      const titleEl = groupDiv.querySelector('.seragam-group-title');
+      const oldBadge = titleEl.querySelector('.badge-selected');
+      if (oldBadge) oldBadge.remove();
+      if (selectedCount > 0) {
+        titleEl.insertAdjacentHTML('beforeend', `<span class="badge-selected">${selectedCount} dipilih</span>`);
+      }
+    }
+  }
   updateGrandTotal();
 }
 
