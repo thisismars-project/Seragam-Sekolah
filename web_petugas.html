@@ -552,17 +552,14 @@
           <table>
             <thead>
               <tr>
-                <th>Tgl</th>
                 <th>Nama Siswa</th>
-                <th>Kelas</th>
-                <th>Seragam</th>
+                <th>Item Seragam</th>
                 <th>Total</th>
-                <th>Status</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody id="berandaTableBody">
-              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:30px;">Memuat data...</td></tr>
+              <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:30px;">Memuat data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -839,7 +836,7 @@ async function loadBeranda() {
   let data = await apiFetch({ action: 'getPesanan' });
   if (!data) {
     hideLoading();
-    document.getElementById('berandaTableBody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat data. Cek koneksi.</p></div></td></tr>';
+    document.getElementById('berandaTableBody').innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat data. Cek koneksi.</p></div></td></tr>';
     return;
   }
   allPesanan = data;
@@ -858,42 +855,69 @@ async function loadBeranda() {
 
   const tbody = document.getElementById('berandaTableBody');
   if (!belum.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">✅</div><p>Tidak ada siswa yang belum melakukan pembayaran</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="emoji">✅</div><p>Tidak ada siswa yang belum melakukan pembayaran</p></div></td></tr>';
   } else {
-    tbody.innerHTML = belum.map((r, i) => `
-      <tr>
-        <td style="font-size:0.78rem;color:var(--muted)">${r.Tanggal || '-'}</td>
-        <td><strong>${r.NamaAnak}</strong></td>
-        <td>${r.Kelas}</td>
-        <td>
-          <div>${r.NamaSeragam} <span style="color:var(--muted);font-size:0.78rem;">${r.ID}</span></div>
-          <div style="font-size:0.75rem;color:var(--muted)">Ukuran: ${r.Ukuran || '-'} | Qty: ${(r.JumlahReady||0)}${(r.JumlahPO||0)>0?' +'+r.JumlahPO+'PO':''}</div>
-        </td>
-        <td><strong>${formatRp(r.TotalBayar)}</strong></td>
-        <td><span class="status-badge status-belum">⏳ Belum Bayar</span></td>
-        <td>
-          <div style="display:flex;gap:4px;">
-            <button class="btn btn-sm btn-success" onclick="ubahStatus(${i},'Cash')">💵 Cash</button>
-            <button class="btn btn-sm btn-primary" onclick="ubahStatus(${i},'Transfer')">🏦 TF</button>
-          </div>
-        </td>
-      </tr>`).join('');
+    // Group by NamaAnak+Kelas
+    const grouped = {};
+    belum.forEach(r => {
+      const key = r.NamaAnak + '||' + r.Kelas;
+      if (!grouped[key]) grouped[key] = { NamaAnak: r.NamaAnak, Kelas: r.Kelas, Tanggal: r.Tanggal, items: [], total: 0, rowIndices: [] };
+      grouped[key].items.push(r);
+      grouped[key].total += parseInt(r.TotalBayar) || 0;
+      grouped[key].rowIndices.push(r._rowIndex);
+    });
+
+    // Sort by name
+    const sorted = Object.values(grouped).sort((a,b) => a.NamaAnak.localeCompare(b.NamaAnak));
+
+    let html = '';
+    sorted.forEach(siswa => {
+      const rowspan = siswa.items.length;
+      siswa.items.forEach((r, i) => {
+        const namaKelasCell = i === 0 ? `
+          <td rowspan="${rowspan}" style="vertical-align:middle">
+            <strong>${siswa.NamaAnak}</strong><br>
+            <small style="color:var(--muted)">${siswa.Kelas}</small><br>
+            <small style="color:var(--muted);font-size:0.72rem">${siswa.Tanggal||''}</small>
+          </td>` : '';
+        const totalCell = i === 0 ? `<td rowspan="${rowspan}" style="vertical-align:middle"><strong>${formatRp(siswa.total)}</strong></td>` : '';
+        const aksiCell = i === 0 ? `
+          <td rowspan="${rowspan}" style="vertical-align:middle">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <button class="btn btn-sm btn-success" onclick="ubahStatusSiswa('${siswa.NamaAnak}','${siswa.Kelas}','Cash')">💵 Cash</button>
+              <button class="btn btn-sm btn-primary" onclick="ubahStatusSiswa('${siswa.NamaAnak}','${siswa.Kelas}','Transfer')">🏦 TF</button>
+            </div>
+          </td>` : '';
+        html += `<tr>
+          ${namaKelasCell}
+          <td>
+            <div style="font-weight:600">${r.NamaSeragam}</div>
+            <div style="font-size:0.75rem;color:var(--muted)">Ukuran: ${r.Ukuran||'-'} | Qty: ${r.JumlahReady||0}${(r.JumlahPO||0)>0?' +'+r.JumlahPO+'PO':''}</div>
+          </td>
+          ${totalCell}
+          ${aksiCell}
+        </tr>`;
+      });
+    });
+    tbody.innerHTML = html;
   }
   hideLoading();
 }
 
-async function ubahStatus(idx, status) {
-  const belum = allPesanan.filter(r => r.StatusPembayaran === 'Belum Pembayaran');
-  const row = belum[idx];
-  if (!row) return;
-  if (!confirm(`Ubah status ${row.NamaAnak} (${row.NamaSeragam}) menjadi "${status}"?`)) return;
+async function ubahStatusSiswa(namaAnak, kelas, status) {
+  if (!confirm(`Tandai semua pesanan ${namaAnak} (${kelas}) sebagai "${status}"?`)) return;
   showLoading();
-  const result = await apiPost({ action: 'ubahStatus', rowIndex: row._rowIndex, status });
-  if (result) {
-    showToast('Status berhasil diubah ke ' + status, 'success');
+  const rows = allPesanan.filter(r => r.NamaAnak === namaAnak && r.Kelas === kelas && r.StatusPembayaran === 'Belum Pembayaran');
+  let success = true;
+  for (const row of rows) {
+    const result = await apiPost({ action: 'ubahStatus', rowIndex: row._rowIndex, status });
+    if (!result || result.error) { success = false; break; }
+  }
+  hideLoading();
+  if (success) {
+    showToast('Status ' + namaAnak + ' berhasil diubah ke ' + status, 'success');
   } else {
-    showToast('Gagal terhubung ke server. (Demo mode)', 'error');
-    row.StatusPembayaran = status; // demo: update lokal
+    showToast('Sebagian gagal diubah, coba lagi.', 'error');
   }
   loadBeranda();
 }
@@ -984,7 +1008,7 @@ async function loadStokTable() {
 // ──────────────────────────────────────────
 // INPUT PESANAN (PETUGAS)
 // ──────────────────────────────────────────
-function onUnitChangePetugas() {
+async function onUnitChangePetugas() {
   const unit = document.getElementById('pUnit').value;
   const sel = document.getElementById('pKelas');
   sel.innerHTML = '<option value="">-- Pilih Kelas --</option>';
@@ -995,6 +1019,7 @@ function onUnitChangePetugas() {
   });
   pPesanan = {};
   pOpenGroups = {};
+  if (unit) await loadStokForPesanan();
   renderPSeragamList();
 }
 
@@ -1364,8 +1389,9 @@ document.getElementById('topbarDate').textContent = new Date().toLocaleDateStrin
 // Set default tanggal hari ini
 const today = new Date().toISOString().slice(0,10);
 document.getElementById('stokTanggal').value = today;
-document.getElementById('filterDari').value = today;
-document.getElementById('filterSampai').value = today;
+// Default kosong supaya semua data tampil, user bisa filter manual
+document.getElementById('filterDari').value = '';
+document.getElementById('filterSampai').value = '';
 
 // Load beranda di awal
 loadBeranda();
