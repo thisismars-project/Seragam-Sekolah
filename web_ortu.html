@@ -255,81 +255,23 @@
     margin-bottom: 16px;
   }
 
-  /* ── ACCORDION GROUP ── */
-  .seragam-group {
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    background: #f8fafd;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .seragam-group.has-selected {
-    border-color: var(--primary-light);
-    box-shadow: 0 0 0 3px rgba(41,121,200,0.1);
-  }
-  .seragam-group-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px;
-    cursor: pointer;
-    user-select: none;
-    background: #f8fafd;
-    transition: background 0.2s;
-  }
-  .seragam-group-header:hover { background: #edf4ff; }
-  .seragam-group.open .seragam-group-header { background: #edf4ff; }
-  .seragam-group-title {
-    font-family: 'Nunito', sans-serif;
-    font-weight: 800;
-    font-size: 0.95rem;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .seragam-group-title .badge-selected {
-    background: var(--primary);
-    color: white;
-    font-size: 0.65rem;
-    padding: 2px 7px;
-    border-radius: 20px;
-    font-weight: 800;
-  }
-  .seragam-group-arrow {
-    font-size: 0.8rem;
-    color: var(--muted);
-    transition: transform 0.25s;
-  }
-  .seragam-group.open .seragam-group-arrow { transform: rotate(180deg); }
-
-  .seragam-group-body {
-    display: none;
-    padding: 0 12px 12px;
-    border-top: 1px solid var(--border);
-  }
-  .seragam-group.open .seragam-group-body { display: block; }
-
-  /* ── UKURAN ITEM ── */
   .seragam-item {
     border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    margin-top: 8px;
-    background: var(--white);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: #f8fafd;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .seragam-item.selected {
     border-color: var(--primary-light);
     background: #edf4ff;
-    box-shadow: 0 0 0 2px rgba(41,121,200,0.1);
+    box-shadow: 0 0 0 3px rgba(41,121,200,0.1);
   }
   .seragam-item-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
-    cursor: pointer;
   }
   .seragam-checkbox {
     width: 20px; height: 20px;
@@ -338,6 +280,7 @@
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    margin-top: 2px;
     transition: all 0.2s;
     background: var(--white);
   }
@@ -350,12 +293,12 @@
   .seragam-name {
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text);
   }
   .seragam-meta {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     margin-top: 4px;
     flex-wrap: wrap;
   }
@@ -374,8 +317,8 @@
 
   .seragam-detail {
     display: none;
-    margin-top: 10px;
-    padding-top: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
   }
   .seragam-item.selected .seragam-detail { display: block; }
@@ -546,17 +489,6 @@
     color: var(--muted);
     margin-top: 4px;
   }
-
-  .nota-siswa-info {
-    margin: 10px 0 8px;
-    padding: 8px 12px;
-    background: #f0f4ff;
-    border-radius: 8px;
-    font-size: 0.88rem;
-  }
-  .nota-siswa-info div { margin-bottom: 3px; }
-  .nota-label { color: var(--muted); font-weight: 600; }
-  .nota-value { font-weight: 800; color: var(--text); }
 
   .nota-table {
     width: 100%;
@@ -810,15 +742,12 @@
         <div class="nota-title">Nota Pemesanan Seragam</div>
         <div class="nota-no" id="notaNo"></div>
       </div>
-      <div class="nota-siswa-info">
-        <div><span class="nota-label">Nama Siswa&nbsp;:&nbsp;</span><span class="nota-value" id="notaNamaSiswa"></span></div>
-        <div><span class="nota-label">Kelas&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;</span><span class="nota-value" id="notaKelasSiswa"></span></div>
-      </div>
       <table class="nota-table">
         <thead>
           <tr>
+            <th>Nama Siswa</th>
+            <th>Kelas</th>
             <th>Seragam</th>
-            <th>Ukuran</th>
             <th>Jml</th>
             <th>Harga</th>
             <th>Total</th>
@@ -854,7 +783,7 @@
 // KONFIGURASI — Ganti sesuai kebutuhan
 // ──────────────────────────────────────────
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzKc8xO-g3JViIfZMBjP6zs3xanxxOBdtS8gFvPzSEuKS_t3JNmtVC8Dq03seEna5rofw/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxWaThy_ZtciVyf3DHbPR9DlEOaQSVcj2Qb5MagdyqjUe2qYhtRY5PELoohnyQi1IWhAQ/exec',
   NAMA_SEKOLAH: 'Yayasan Pendidikan ABC',
   BANK_INFO: 'Bank BCA – No. Rek: 123-456-7890 a.n. Yayasan Pendidikan ABC',
   WA_NUMBER: '0812-3456-7890',
@@ -957,21 +886,15 @@ async function loadSeragam() {
     const url = CONFIG.APPS_SCRIPT_URL + '?action=getStok';
     const res = await fetch(url);
     const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('Data tidak valid: ' + JSON.stringify(data));
     state.seragamData = data.filter(item => {
-      const idUpper = String(item.ID).toUpperCase();
-      return idUpper.startsWith(state.unit.toUpperCase() + '-');
+      const idUpper = item.ID.toUpperCase();
+      return idUpper.startsWith(state.unit + '-');
     });
     renderSeragamList();
   } catch(e) {
-    hideLoading();
-    document.getElementById('seragamList').innerHTML = `
-      <div class="empty-state">
-        <div class="icon">❌</div>
-        <p style="color:red;font-weight:700;">Gagal memuat data seragam</p>
-        <p style="font-size:0.8rem;margin-top:8px;">${e.message}</p>
-      </div>`;
-    return;
+    // DEMO MODE — gunakan data dummy jika belum terhubung ke Apps Script
+    state.seragamData = getDummyData(state.unit);
+    renderSeragamList();
   }
   hideLoading();
 }
@@ -994,143 +917,80 @@ function renderSeragamList() {
     container.innerHTML = '<div class="empty-state"><div class="icon">😔</div><p>Tidak ada data seragam untuk unit ' + state.unit + '</p></div>';
     return;
   }
-
-  // Kelompokkan item berdasarkan Nama
-  const groups = {};
-  state.seragamData.forEach(item => {
-    if (!groups[item.Nama]) groups[item.Nama] = [];
-    groups[item.Nama].push(item);
-  });
-
   container.innerHTML = '';
+  state.seragamData.forEach(item => {
+    const stok = parseInt(item.Stok) || 0;
+    let stokChip = '';
+    if (stok > 5) stokChip = `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`;
+    else if (stok > 0) stokChip = `<span class="meta-chip chip-stok-low">Stok: ${stok} (terbatas)</span>`;
+    else stokChip = `<span class="meta-chip chip-stok-empty">Stok Habis (PO)</span>`;
 
-  Object.entries(groups).forEach(([namaGroup, items]) => {
-    const groupKey = namaGroup.replace(/[^a-z0-9]/gi, '_');
-    const pKey = it => it.ID + '_' + it.Ukuran;
-    const selectedCount = items.filter(it => !!state.pesanan[pKey(it)]).length;
-    const isOpen = selectedCount > 0 || state.openGroups?.[groupKey];
+    const isSelected = !!state.pesanan[item.ID];
+    const qty = state.pesanan[item.ID]?.qty || 1;
 
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'seragam-group' + (isOpen ? ' open' : '') + (selectedCount > 0 ? ' has-selected' : '');
-    groupDiv.id = 'group-' + groupKey;
-
-    const itemsHTML = items.map(item => {
-      const stok = parseInt(item.Stok) || 0;
-      const key = item.ID + '_' + item.Ukuran;
-      const isSelected = !!state.pesanan[key];
-      const qty = state.pesanan[key]?.qty || 1;
-      const safeId = key.replace(/[^a-z0-9]/gi, '_');
-
-      let stokChip = '';
-      if (stok > 5) stokChip = `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`;
-      else if (stok > 0) stokChip = `<span class="meta-chip chip-stok-low">Stok: ${stok} (terbatas)</span>`;
-      else stokChip = `<span class="meta-chip chip-stok-empty">Stok Habis (PO)</span>`;
-
-      return `
-        <div class="seragam-item${isSelected ? ' selected' : ''}" id="item-${safeId}">
-          <div class="seragam-item-header" onclick="toggleItem('${item.ID}','${item.Ukuran}')">
-            <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
-            <div class="seragam-info">
-              <div class="seragam-name">Ukuran ${item.Ukuran || '-'}</div>
-              <div class="seragam-meta">
-                <span class="meta-chip chip-harga">${formatRp(item.Harga)}</span>
-                ${stokChip}
-              </div>
-            </div>
+    const div = document.createElement('div');
+    div.className = 'seragam-item' + (isSelected ? ' selected' : '');
+    div.id = 'item-' + item.ID.replace(/[^a-z0-9]/gi, '_');
+    div.innerHTML = `
+      <div class="seragam-item-header" onclick="toggleItem('${item.ID}')">
+        <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
+        <div class="seragam-info">
+          <div class="seragam-name">${item.Nama}</div>
+          <div class="seragam-meta">
+            <span class="meta-chip chip-id">${item.ID}</span>
+            ${item.Ukuran ? `<span class="meta-chip chip-ukuran">Ukuran: ${item.Ukuran}</span>` : ''}
+            <span class="meta-chip chip-harga">${formatRp(item.Harga)}</span>
+            ${stokChip}
           </div>
-          <div class="seragam-detail">
-            <label style="margin-bottom:6px;">Jumlah:</label>
-            <div class="qty-control">
-              <button class="qty-btn" onclick="changeQty('${item.ID}','${item.Ukuran}',-1)">−</button>
-              <span class="qty-num" id="qty-${safeId}">${qty}</span>
-              <button class="qty-btn" onclick="changeQty('${item.ID}','${item.Ukuran}',1)">+</button>
-            </div>
-            <div class="qty-note" id="ponote-${safeId}"></div>
-          </div>
-        </div>`;
-    }).join('');
-
-    groupDiv.innerHTML = `
-      <div class="seragam-group-header" onclick="toggleGroup('${groupKey}')">
-        <div class="seragam-group-title">
-          👕 ${namaGroup}
-          ${selectedCount > 0 ? `<span class="badge-selected">${selectedCount} ukuran dipilih</span>` : ''}
         </div>
-        <span class="seragam-group-arrow">▼</span>
       </div>
-      <div class="seragam-group-body">${itemsHTML}</div>
+      <div class="seragam-detail">
+        <label style="margin-bottom:6px;">Jumlah:</label>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('${item.ID}', -1)">−</button>
+          <span class="qty-num" id="qty-${item.ID.replace(/[^a-z0-9]/gi, '_')}">${qty}</span>
+          <button class="qty-btn" onclick="changeQty('${item.ID}', 1)">+</button>
+        </div>
+        <div class="qty-note" id="ponote-${item.ID.replace(/[^a-z0-9]/gi, '_')}"></div>
+      </div>
     `;
-    container.appendChild(groupDiv);
-
-    // Update PO notes for selected items
-    items.forEach(item => {
-      const key = item.ID + '_' + item.Ukuran;
-      if (state.pesanan[key]) updatePoNote(item.ID, item.Ukuran, state.pesanan[key].qty);
-    });
+    container.appendChild(div);
+    if (isSelected) updatePoNote(item.ID, qty);
   });
-
   updateGrandTotal();
 }
 
-function toggleGroup(groupKey) {
-  if (!state.openGroups) state.openGroups = {};
-  const groupDiv = document.getElementById('group-' + groupKey);
-  const isOpen = groupDiv.classList.toggle('open');
-  state.openGroups[groupKey] = isOpen;
-}
-
-function toggleItem(id, ukuran) {
-  const key = id + '_' + ukuran;
-  if (state.pesanan[key]) {
-    delete state.pesanan[key];
+function toggleItem(id) {
+  if (state.pesanan[id]) {
+    delete state.pesanan[id];
   } else {
-    const item = state.seragamData.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
-    state.pesanan[key] = { item, qty: 1 };
+    const item = state.seragamData.find(s => s.ID === id);
+    state.pesanan[id] = { item, qty: 1 };
   }
-  const safeId = key.replace(/[^a-z0-9]/gi, '_');
+  const safeId = id.replace(/[^a-z0-9]/gi, '_');
   const div = document.getElementById('item-' + safeId);
   const cb = div.querySelector('.seragam-checkbox');
-  const isNow = !!state.pesanan[key];
+  const isNow = !!state.pesanan[id];
   div.classList.toggle('selected', isNow);
   cb.textContent = isNow ? '✓' : '';
-  if (isNow) updatePoNote(id, ukuran, 1);
-
-  // Update group badge & style
-  const item = state.seragamData.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
-  if (item) {
-    const groupKey = item.Nama.replace(/[^a-z0-9]/gi, '_');
-    const groupDiv = document.getElementById('group-' + groupKey);
-    if (groupDiv) {
-      const groupItems = state.seragamData.filter(s => s.Nama === item.Nama);
-      const selectedCount = groupItems.filter(it => !!state.pesanan[it.ID + '_' + it.Ukuran]).length;
-      groupDiv.classList.toggle('has-selected', selectedCount > 0);
-      const titleEl = groupDiv.querySelector('.seragam-group-title');
-      const oldBadge = titleEl.querySelector('.badge-selected');
-      if (oldBadge) oldBadge.remove();
-      if (selectedCount > 0) {
-        titleEl.insertAdjacentHTML('beforeend', `<span class="badge-selected">${selectedCount} ukuran dipilih</span>`);
-      }
-    }
-  }
+  if (isNow) updatePoNote(id, 1);
   updateGrandTotal();
 }
 
-function changeQty(id, ukuran, delta) {
-  const key = id + '_' + ukuran;
-  if (!state.pesanan[key]) return;
-  let qty = state.pesanan[key].qty + delta;
+function changeQty(id, delta) {
+  if (!state.pesanan[id]) return;
+  let qty = state.pesanan[id].qty + delta;
   if (qty < 1) qty = 1;
-  state.pesanan[key].qty = qty;
-  const safeId = key.replace(/[^a-z0-9]/gi, '_');
+  state.pesanan[id].qty = qty;
+  const safeId = id.replace(/[^a-z0-9]/gi, '_');
   document.getElementById('qty-' + safeId).textContent = qty;
-  updatePoNote(id, ukuran, qty);
+  updatePoNote(id, qty);
   updateGrandTotal();
 }
 
-function updatePoNote(id, ukuran, qty) {
-  const item = state.seragamData.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
-  const key = id + '_' + ukuran;
-  const safeId = key.replace(/[^a-z0-9]/gi, '_');
+function updatePoNote(id, qty) {
+  const item = state.seragamData.find(s => s.ID === id);
+  const safeId = id.replace(/[^a-z0-9]/gi, '_');
   const el = document.getElementById('ponote-' + safeId);
   if (!el || !item) return;
   const stok = parseInt(item.Stok) || 0;
@@ -1231,31 +1091,18 @@ async function buatNota() {
   });
 
   try {
-    // Google Apps Script requires no custom Content-Type header for CORS
-    const payload = JSON.stringify({ action: 'simpanPesanan', rows });
-    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
-      body: payload,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'simpanPesanan', rows }),
     });
-    const result = await res.json();
-    if (result.error) {
-      console.error('Gagal simpan pesanan:', result.error);
-      showToast('Pesanan gagal disimpan: ' + result.error, 'error');
-      hideLoading();
-      return;
-    }
   } catch(e) {
-    console.error('Fetch error:', e);
-    showToast('Koneksi gagal, coba lagi.', 'error');
-    hideLoading();
-    return;
+    // DEMO: lanjut tampilkan nota meski belum konek ke Apps Script
   }
 
   // Render nota
   document.getElementById('notaSchool').textContent = CONFIG.NAMA_SEKOLAH;
   document.getElementById('notaNo').textContent = 'No. ' + noNota + ' | ' + ts;
-  document.getElementById('notaNamaSiswa').textContent = state.namaAnak;
-  document.getElementById('notaKelasSiswa').textContent = state.unit + ' - ' + state.kelas;
   const tbody = document.getElementById('notaTableBody');
   tbody.innerHTML = '';
   let total = 0;
@@ -1266,10 +1113,13 @@ async function buatNota() {
     const stok = parseInt(item.Stok) || 0;
     const ready = Math.min(qty, stok);
     const po = Math.max(0, qty - stok);
+    let qtyLabel = qty + ' pcs';
+    if (po > 0) qtyLabel += `\n(${ready} ready, ${po} PO)`;
     tbody.innerHTML += `
       <tr>
-        <td>${item.Nama}</td>
-        <td>${item.Ukuran || '-'}</td>
+        <td>${state.namaAnak}</td>
+        <td>${state.unit} - ${state.kelas}</td>
+        <td>${item.Nama} (${item.Ukuran || '-'})</td>
         <td>${qty}${po > 0 ? ' <span style="color:var(--po);font-size:0.7rem;">('+ready+'R+'+po+'PO)</span>' : ''}</td>
         <td>${formatRp(item.Harga)}</td>
         <td>${formatRp(subtotal)}</td>
