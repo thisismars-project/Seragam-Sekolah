@@ -547,6 +547,17 @@
     margin-top: 4px;
   }
 
+  .nota-siswa-info {
+    margin: 10px 0 8px;
+    padding: 8px 12px;
+    background: #f0f4ff;
+    border-radius: 8px;
+    font-size: 0.88rem;
+  }
+  .nota-siswa-info div { margin-bottom: 3px; }
+  .nota-label { color: var(--muted); font-weight: 600; }
+  .nota-value { font-weight: 800; color: var(--text); }
+
   .nota-table {
     width: 100%;
     border-collapse: collapse;
@@ -799,12 +810,15 @@
         <div class="nota-title">Nota Pemesanan Seragam</div>
         <div class="nota-no" id="notaNo"></div>
       </div>
+      <div class="nota-siswa-info">
+        <div><span class="nota-label">Nama Siswa&nbsp;:&nbsp;</span><span class="nota-value" id="notaNamaSiswa"></span></div>
+        <div><span class="nota-label">Kelas&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;</span><span class="nota-value" id="notaKelasSiswa"></span></div>
+      </div>
       <table class="nota-table">
         <thead>
           <tr>
-            <th>Nama Siswa</th>
-            <th>Kelas</th>
             <th>Seragam</th>
+            <th>Ukuran</th>
             <th>Jml</th>
             <th>Harga</th>
             <th>Total</th>
@@ -840,7 +854,7 @@
 // KONFIGURASI — Ganti sesuai kebutuhan
 // ──────────────────────────────────────────
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxzdz0HrgpGGBq0gD7OIAvQDwBT4MYrZRfi_zNp99hwXOuD2YAkRVE1jC6mb9cCR4Jz/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz1YrUNcVP5qcNSqDK6IgOqNxLp-z7gLYczyZ-HGRs_THIqaB-e3RzvlnBC4ZgEF5aKDw/exec',
   NAMA_SEKOLAH: 'Yayasan Pendidikan ABC',
   BANK_INFO: 'Bank BCA – No. Rek: 123-456-7890 a.n. Yayasan Pendidikan ABC',
   WA_NUMBER: '0812-3456-7890',
@@ -1217,18 +1231,31 @@ async function buatNota() {
   });
 
   try {
-    await fetch(CONFIG.APPS_SCRIPT_URL, {
+    // Google Apps Script requires no custom Content-Type header for CORS
+    const payload = JSON.stringify({ action: 'simpanPesanan', rows });
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'simpanPesanan', rows }),
+      body: payload,
     });
+    const result = await res.json();
+    if (result.error) {
+      console.error('Gagal simpan pesanan:', result.error);
+      showToast('Pesanan gagal disimpan: ' + result.error, 'error');
+      hideLoading();
+      return;
+    }
   } catch(e) {
-    // DEMO: lanjut tampilkan nota meski belum konek ke Apps Script
+    console.error('Fetch error:', e);
+    showToast('Koneksi gagal, coba lagi.', 'error');
+    hideLoading();
+    return;
   }
 
   // Render nota
   document.getElementById('notaSchool').textContent = CONFIG.NAMA_SEKOLAH;
   document.getElementById('notaNo').textContent = 'No. ' + noNota + ' | ' + ts;
+  document.getElementById('notaNamaSiswa').textContent = state.namaAnak;
+  document.getElementById('notaKelasSiswa').textContent = state.unit + ' - ' + state.kelas;
   const tbody = document.getElementById('notaTableBody');
   tbody.innerHTML = '';
   let total = 0;
@@ -1239,13 +1266,10 @@ async function buatNota() {
     const stok = parseInt(item.Stok) || 0;
     const ready = Math.min(qty, stok);
     const po = Math.max(0, qty - stok);
-    let qtyLabel = qty + ' pcs';
-    if (po > 0) qtyLabel += `\n(${ready} ready, ${po} PO)`;
     tbody.innerHTML += `
       <tr>
-        <td>${state.namaAnak}</td>
-        <td>${state.unit} - ${state.kelas}</td>
-        <td>${item.Nama} (${item.Ukuran || '-'})</td>
+        <td>${item.Nama}</td>
+        <td>${item.Ukuran || '-'}</td>
         <td>${qty}${po > 0 ? ' <span style="color:var(--po);font-size:0.7rem;">('+ready+'R+'+po+'PO)</span>' : ''}</td>
         <td>${formatRp(item.Harga)}</td>
         <td>${formatRp(subtotal)}</td>
