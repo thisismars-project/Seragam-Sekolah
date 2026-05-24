@@ -992,7 +992,8 @@ function renderSeragamList() {
 
   Object.entries(groups).forEach(([namaGroup, items]) => {
     const groupKey = namaGroup.replace(/[^a-z0-9]/gi, '_');
-    const selectedCount = items.filter(it => !!state.pesanan[it.ID]).length;
+    const pKey = it => it.ID + '_' + it.Ukuran;
+    const selectedCount = items.filter(it => !!state.pesanan[pKey(it)]).length;
     const isOpen = selectedCount > 0 || state.openGroups?.[groupKey];
 
     const groupDiv = document.createElement('div');
@@ -1001,9 +1002,10 @@ function renderSeragamList() {
 
     const itemsHTML = items.map(item => {
       const stok = parseInt(item.Stok) || 0;
-      const isSelected = !!state.pesanan[item.ID];
-      const qty = state.pesanan[item.ID]?.qty || 1;
-      const safeId = item.ID.replace(/[^a-z0-9]/gi, '_');
+      const key = item.ID + '_' + item.Ukuran;
+      const isSelected = !!state.pesanan[key];
+      const qty = state.pesanan[key]?.qty || 1;
+      const safeId = key.replace(/[^a-z0-9]/gi, '_');
 
       let stokChip = '';
       if (stok > 5) stokChip = `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`;
@@ -1012,7 +1014,7 @@ function renderSeragamList() {
 
       return `
         <div class="seragam-item${isSelected ? ' selected' : ''}" id="item-${safeId}">
-          <div class="seragam-item-header" onclick="toggleItem('${item.ID}')">
+          <div class="seragam-item-header" onclick="toggleItem('${item.ID}','${item.Ukuran}')">
             <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
             <div class="seragam-info">
               <div class="seragam-name">Ukuran ${item.Ukuran || '-'}</div>
@@ -1025,9 +1027,9 @@ function renderSeragamList() {
           <div class="seragam-detail">
             <label style="margin-bottom:6px;">Jumlah:</label>
             <div class="qty-control">
-              <button class="qty-btn" onclick="changeQty('${item.ID}', -1)">−</button>
+              <button class="qty-btn" onclick="changeQty('${item.ID}','${item.Ukuran}',-1)">−</button>
               <span class="qty-num" id="qty-${safeId}">${qty}</span>
-              <button class="qty-btn" onclick="changeQty('${item.ID}', 1)">+</button>
+              <button class="qty-btn" onclick="changeQty('${item.ID}','${item.Ukuran}',1)">+</button>
             </div>
             <div class="qty-note" id="ponote-${safeId}"></div>
           </div>
@@ -1038,7 +1040,7 @@ function renderSeragamList() {
       <div class="seragam-group-header" onclick="toggleGroup('${groupKey}')">
         <div class="seragam-group-title">
           👕 ${namaGroup}
-          ${selectedCount > 0 ? `<span class="badge-selected">${selectedCount} dipilih</span>` : ''}
+          ${selectedCount > 0 ? `<span class="badge-selected">${selectedCount} ukuran dipilih</span>` : ''}
         </div>
         <span class="seragam-group-arrow">▼</span>
       </div>
@@ -1048,7 +1050,8 @@ function renderSeragamList() {
 
     // Update PO notes for selected items
     items.forEach(item => {
-      if (state.pesanan[item.ID]) updatePoNote(item.ID, state.pesanan[item.ID].qty);
+      const key = item.ID + '_' + item.Ukuran;
+      if (state.pesanan[key]) updatePoNote(item.ID, item.Ukuran, state.pesanan[key].qty);
     });
   });
 
@@ -1062,55 +1065,58 @@ function toggleGroup(groupKey) {
   state.openGroups[groupKey] = isOpen;
 }
 
-function toggleItem(id) {
-  if (state.pesanan[id]) {
-    delete state.pesanan[id];
+function toggleItem(id, ukuran) {
+  const key = id + '_' + ukuran;
+  if (state.pesanan[key]) {
+    delete state.pesanan[key];
   } else {
-    const item = state.seragamData.find(s => s.ID === id);
-    state.pesanan[id] = { item, qty: 1 };
+    const item = state.seragamData.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
+    state.pesanan[key] = { item, qty: 1 };
   }
-  const safeId = id.replace(/[^a-z0-9]/gi, '_');
+  const safeId = key.replace(/[^a-z0-9]/gi, '_');
   const div = document.getElementById('item-' + safeId);
   const cb = div.querySelector('.seragam-checkbox');
-  const isNow = !!state.pesanan[id];
+  const isNow = !!state.pesanan[key];
   div.classList.toggle('selected', isNow);
   cb.textContent = isNow ? '✓' : '';
-  if (isNow) updatePoNote(id, 1);
+  if (isNow) updatePoNote(id, ukuran, 1);
 
   // Update group badge & style
-  const item = state.seragamData.find(s => s.ID === id);
+  const item = state.seragamData.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
   if (item) {
     const groupKey = item.Nama.replace(/[^a-z0-9]/gi, '_');
     const groupDiv = document.getElementById('group-' + groupKey);
     if (groupDiv) {
       const groupItems = state.seragamData.filter(s => s.Nama === item.Nama);
-      const selectedCount = groupItems.filter(it => !!state.pesanan[it.ID]).length;
+      const selectedCount = groupItems.filter(it => !!state.pesanan[it.ID + '_' + it.Ukuran]).length;
       groupDiv.classList.toggle('has-selected', selectedCount > 0);
       const titleEl = groupDiv.querySelector('.seragam-group-title');
       const oldBadge = titleEl.querySelector('.badge-selected');
       if (oldBadge) oldBadge.remove();
       if (selectedCount > 0) {
-        titleEl.insertAdjacentHTML('beforeend', `<span class="badge-selected">${selectedCount} dipilih</span>`);
+        titleEl.insertAdjacentHTML('beforeend', `<span class="badge-selected">${selectedCount} ukuran dipilih</span>`);
       }
     }
   }
   updateGrandTotal();
 }
 
-function changeQty(id, delta) {
-  if (!state.pesanan[id]) return;
-  let qty = state.pesanan[id].qty + delta;
+function changeQty(id, ukuran, delta) {
+  const key = id + '_' + ukuran;
+  if (!state.pesanan[key]) return;
+  let qty = state.pesanan[key].qty + delta;
   if (qty < 1) qty = 1;
-  state.pesanan[id].qty = qty;
-  const safeId = id.replace(/[^a-z0-9]/gi, '_');
+  state.pesanan[key].qty = qty;
+  const safeId = key.replace(/[^a-z0-9]/gi, '_');
   document.getElementById('qty-' + safeId).textContent = qty;
-  updatePoNote(id, qty);
+  updatePoNote(id, ukuran, qty);
   updateGrandTotal();
 }
 
-function updatePoNote(id, qty) {
-  const item = state.seragamData.find(s => s.ID === id);
-  const safeId = id.replace(/[^a-z0-9]/gi, '_');
+function updatePoNote(id, ukuran, qty) {
+  const item = state.seragamData.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
+  const key = id + '_' + ukuran;
+  const safeId = key.replace(/[^a-z0-9]/gi, '_');
   const el = document.getElementById('ponote-' + safeId);
   if (!el || !item) return;
   const stok = parseInt(item.Stok) || 0;
