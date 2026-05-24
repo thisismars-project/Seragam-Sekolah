@@ -448,200 +448,6 @@
     color: var(--accent);
   }
 
-  /* ── SERAGAM ACCORDION (input pesanan) ── */
-  .seragam-group {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    background: var(--card2);
-  }
-  .seragam-group.has-selected {
-    border-color: var(--primary-light);
-    box-shadow: 0 0 0 2px rgba(36,86,138,0.25);
-  }
-  .seragam-group-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s;
-  }
-  .seragam-group-header:hover { background: rgba(255,255,255,0.04); }
-  .seragam-group-title {
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text);
-  }
-  .badge-selected {
-    background: var(--primary-light);
-    color: var(--accent);
-    font-size: 0.7rem;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 700;
-  }
-  .seragam-group-arrow {
-    color: var(--muted);
-    font-size: 0.75rem;
-    transition: transform 0.2s;
-  }
-  .seragam-group.open .seragam-group-arrow { transform: rotate(180deg); }
-  .seragam-group-body {
-    display: none;
-    padding: 0 12px 12px;
-    border-top: 1px solid var(--border);
-  }
-  .seragam-group.open .seragam-group-body { display: block; }
-
-  .seragam-item {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    margin-top: 8px;
-    background: var(--card);
-    transition: border-color 0.2s;
-  }
-  .seragam-item.selected {
-    border-color: var(--primary-light);
-    background: rgba(36,86,138,0.15);
-  }
-  .seragam-item-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-  }
-  .seragam-checkbox {
-    width: 18px; height: 18px;
-    border: 2px solid var(--border);
-    border-radius: 4px;
-    background: var(--card2);
-    color: var(--white);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    font-size: 0.7rem;
-    font-weight: 900;
-    transition: all 0.15s;
-    margin-top: 2px;
-  }
-  .seragam-item.selected .seragam-checkbox {
-    background: var(--primary-light);
-    border-color: var(--primary-light);
-  }
-  .seragam-info { flex: 1; }
-  .seragam-name { font-weight: 700; font-size: 0.88rem; }
-  .seragam-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-  .meta-chip { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
-  .chip-harga { background: rgba(39,174,96,0.15); color: #6ddc9a; }
-  .chip-stok-ok { background: rgba(39,174,96,0.12); color: #6ddc9a; }
-  .chip-stok-low { background: rgba(230,126,34,0.15); color: #f0a44a; }
-  .chip-stok-empty { background: rgba(231,76,60,0.15); color: #ff8a7a; }
-
-  .seragam-detail {
-    display: none;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
-  }
-  .seragam-item.selected .seragam-detail { display: block; }
-  .qty-control { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-  .qty-btn {
-    width: 30px; height: 30px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: var(--card2);
-    color: var(--text);
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
-  .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .qty-num { font-weight: 900; min-width: 28px; text-align: center; font-size: 1rem; }
-
-  /* ── AUTOCOMPLETE ── */
-  .autocomplete-wrap { position: relative; }
-  .autocomplete-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0; right: 0;
-    background: var(--card);
-    border: 1px solid var(--primary-light);
-    border-radius: 8px;
-    z-index: 500;
-    max-height: 220px;
-    overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    display: none;
-  }
-  .autocomplete-dropdown.show { display: block; }
-  .autocomplete-item {
-    padding: 10px 14px;
-    cursor: pointer;
-    font-size: 0.88rem;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: background 0.15s;
-  }
-  .autocomplete-item:last-child { border-bottom: none; }
-  .autocomplete-item:hover, .autocomplete-item.active { background: var(--primary-light); }
-  .autocomplete-item .ac-id {
-    font-size: 0.72rem;
-    background: rgba(255,255,255,0.1);
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-weight: 700;
-    color: var(--accent);
-    flex-shrink: 0;
-  }
-  .autocomplete-item .ac-info { flex: 1; }
-  .autocomplete-item .ac-name { font-weight: 700; }
-  .autocomplete-item .ac-sub { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
-  .autocomplete-item .ac-stok { font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
-
-  /* ── STOK ROW (updated) ── */
-  .stok-item-row {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 10px;
-  }
-  .stok-item-row .form-group { margin-bottom: 0; }
-  .stok-row-grid {
-    display: grid;
-    grid-template-columns: 1fr 80px 110px auto;
-    gap: 10px;
-    align-items: center;
-  }
-  .stok-row-selected {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(36,86,138,0.2);
-    border-radius: 8px;
-    padding: 8px 12px;
-    margin-bottom: 10px;
-    font-size: 0.85rem;
-  }
-  .stok-row-selected .sel-name { flex: 1; font-weight: 700; }
-  .stok-row-selected .sel-id { color: var(--accent); font-size: 0.75rem; }
-  .stok-row-clear {
-    background: none; border: none; color: var(--muted);
-    cursor: pointer; font-size: 1rem; padding: 0 4px;
-    transition: color 0.15s;
-  }
-  .stok-row-clear:hover { color: var(--danger); }
-
   /* Mobile toggle */
   .mobile-toggle {
     display: none;
@@ -934,7 +740,7 @@
 // KONFIGURASI
 // ──────────────────────────────────────────
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxWaThy_ZtciVyf3DHbPR9DlEOaQSVcj2Qb5MagdyqjUe2qYhtRY5PELoohnyQi1IWhAQ/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby09RjGcSzOyqbJgGJUV4sNQYu5o0ZXivrkYEFPx6zIWxwWXejSsTnU_SMDtlGvuVnkAw/exec',
 };
 
 const KELAS_MAP = {
@@ -993,7 +799,7 @@ function showPanel(id) {
 
   // Load data sesuai panel
   if (id === 'beranda') loadBeranda();
-  if (id === 'inputStok') { loadStokTable().then(() => { if (!document.getElementById('stokRows').children.length) tambahStokRow(); }); }
+  if (id === 'inputStok') { loadStokTable(); if (!document.getElementById('stokRows').children.length) tambahStokRow(); }
   if (id === 'inputPesanan') loadStokForPesanan();
 }
 
@@ -1119,189 +925,69 @@ async function ubahStatusSiswa(namaAnak, kelas, status) {
 // ──────────────────────────────────────────
 // INPUT STOK
 // ──────────────────────────────────────────
-// stokRowData[id] = { item: {...} | null }
-const stokRowData = {};
-
 function tambahStokRow() {
   const container = document.getElementById('stokRows');
   const id = ++stokRowCount;
-  stokRowData[id] = { item: null };
   const div = document.createElement('div');
   div.className = 'stok-item-row';
   div.id = 'stokRow-' + id;
   div.innerHTML = `
-    <div class="stok-row-selected" id="sSelected-${id}" style="display:none">
-      <div class="ac-id" id="sSelId-${id}"></div>
-      <div class="sel-name">
-        <div id="sSelNama-${id}"></div>
-        <div class="sel-id" id="sSelUkuran-${id}"></div>
-      </div>
-      <button class="stok-row-clear" onclick="clearStokRow(${id})" title="Ganti seragam">✕</button>
+    <div class="form-group">
+      <label>ID Seragam</label>
+      <input type="text" placeholder="cth: TK-001" id="sId-${id}">
     </div>
-    <div class="stok-row-grid">
-      <div class="form-group autocomplete-wrap" id="sAcWrap-${id}">
-        <label>Cari Seragam <span class="req">*</span></label>
-        <input type="text" id="sSearch-${id}" placeholder="Ketik nama atau ID seragam..." autocomplete="off"
-          oninput="onStokSearch(${id})"
-          onkeydown="onStokKeydown(event,${id})"
-          onfocus="onStokSearch(${id})">
-        <div class="autocomplete-dropdown" id="sDrop-${id}"></div>
-      </div>
-      <div class="form-group">
-        <label>Jumlah Masuk <span class="req">*</span></label>
-        <input type="number" min="1" placeholder="0" id="sJml-${id}" oninput="updateStokPreview(${id})">
-      </div>
-      <div class="form-group">
-        <label>Stok Sekarang → Baru</label>
-        <div style="padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;font-size:0.85rem;color:var(--muted);min-height:40px;" id="sPreview-${id}">—</div>
-      </div>
-      <button class="btn btn-danger btn-sm" onclick="hapusStokRow(${id})" style="margin-top:20px;">🗑</button>
+    <div class="form-group">
+      <label>Nama Seragam</label>
+      <input type="text" placeholder="Nama seragam" id="sNama-${id}">
     </div>
+    <div class="form-group">
+      <label>Ukuran</label>
+      <input type="text" placeholder="M, L, XL" id="sUkuran-${id}">
+    </div>
+    <div class="form-group">
+      <label>Jumlah Stok</label>
+      <input type="number" min="0" placeholder="0" id="sJml-${id}">
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="hapusStokRow(${id})" style="margin-top:18px;">🗑</button>
   `;
   container.appendChild(div);
-
-  // Close dropdown when clicking outside
-  document.addEventListener('click', function handler(e) {
-    if (!div.contains(e.target)) {
-      const drop = document.getElementById('sDrop-' + id);
-      if (drop) drop.classList.remove('show');
-    }
-  });
 }
-
-function onStokSearch(id) {
-  const q = (document.getElementById('sSearch-' + id)?.value || '').toLowerCase().trim();
-  const drop = document.getElementById('sDrop-' + id);
-  if (!drop) return;
-
-  const matches = allStok.filter(s =>
-    !q ||
-    s.ID.toLowerCase().includes(q) ||
-    s.Nama.toLowerCase().includes(q) ||
-    (s.Ukuran && String(s.Ukuran).toLowerCase().includes(q))
-  ).slice(0, 12);
-
-  if (!matches.length) {
-    drop.innerHTML = '<div class="autocomplete-item" style="color:var(--muted);cursor:default">Tidak ditemukan</div>';
-  } else {
-    drop.innerHTML = matches.map((s, i) => {
-      const stok = parseInt(s.Stok) || 0;
-      const stokColor = stok <= 0 ? '#ff8a7a' : stok <= 5 ? '#f0a44a' : '#6ddc9a';
-      return `<div class="autocomplete-item" data-idx="${i}"
-        onmousedown="pilihStokItem(${id}, '${s.ID}', '${s.Nama.replace(/'/g,"\\'")}', '${s.Ukuran||''}', ${s.Stok||0}, ${s.Harga||0})">
-        <span class="ac-id">${s.ID}</span>
-        <div class="ac-info">
-          <div class="ac-name">${s.Nama}</div>
-          <div class="ac-sub">Ukuran: ${s.Ukuran||'-'} &nbsp;|&nbsp; ${formatRp(s.Harga)}</div>
-        </div>
-        <span class="ac-stok" style="color:${stokColor}">Stok: ${stok}</span>
-      </div>`;
-    }).join('');
-  }
-  drop.classList.add('show');
-}
-
-function onStokKeydown(e, id) {
-  const drop = document.getElementById('sDrop-' + id);
-  if (!drop || !drop.classList.contains('show')) return;
-  const items = drop.querySelectorAll('.autocomplete-item[data-idx]');
-  let active = drop.querySelector('.autocomplete-item.active');
-  let idx = active ? parseInt(active.dataset.idx) : -1;
-  if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx+1, items.length-1); }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx-1, 0); }
-  else if (e.key === 'Enter' && active) { e.preventDefault(); active.dispatchEvent(new Event('mousedown')); return; }
-  else if (e.key === 'Escape') { drop.classList.remove('show'); return; }
-  items.forEach(el => el.classList.remove('active'));
-  if (items[idx]) items[idx].classList.add('active');
-}
-
-function pilihStokItem(rowId, id, nama, ukuran, stok, harga) {
-  stokRowData[rowId] = { item: { ID: id, Nama: nama, Ukuran: ukuran, Stok: stok, Harga: harga } };
-
-  // Show selected chip
-  const sel = document.getElementById('sSelected-' + rowId);
-  document.getElementById('sSelId-' + rowId).textContent = id;
-  document.getElementById('sSelNama-' + rowId).textContent = nama;
-  document.getElementById('sSelUkuran-' + rowId).textContent = 'Ukuran: ' + (ukuran||'-') + ' | ' + formatRp(harga);
-  sel.style.display = 'flex';
-
-  // Hide search input, show in grid but disable
-  const searchInput = document.getElementById('sSearch-' + rowId);
-  searchInput.value = '';
-  searchInput.placeholder = 'Seragam sudah dipilih';
-  searchInput.disabled = true;
-  document.getElementById('sDrop-' + rowId).classList.remove('show');
-
-  updateStokPreview(rowId);
-}
-
-function clearStokRow(rowId) {
-  stokRowData[rowId] = { item: null };
-  document.getElementById('sSelected-' + rowId).style.display = 'none';
-  const searchInput = document.getElementById('sSearch-' + rowId);
-  searchInput.value = '';
-  searchInput.placeholder = 'Ketik nama atau ID seragam...';
-  searchInput.disabled = false;
-  searchInput.focus();
-  document.getElementById('sPreview-' + rowId).textContent = '—';
-}
-
-function updateStokPreview(rowId) {
-  const data = stokRowData[rowId];
-  const jml = parseInt(document.getElementById('sJml-' + rowId)?.value) || 0;
-  const el = document.getElementById('sPreview-' + rowId);
-  if (!el) return;
-  if (!data?.item) { el.textContent = '—'; return; }
-  const stokLama = parseInt(data.item.Stok) || 0;
-  const stokBaru = stokLama + jml;
-  el.innerHTML = `<span style="color:var(--muted)">${stokLama}</span> <span style="color:var(--accent)">→</span> <strong style="color:var(--success)">${stokBaru}</strong>`;
-}
-
 function hapusStokRow(id) {
   document.getElementById('stokRow-' + id)?.remove();
-  delete stokRowData[id];
 }
-
 async function simpanStok() {
   const tgl = document.getElementById('stokTanggal').value;
   const ket = document.getElementById('stokKeterangan').value;
   if (!tgl) { showToast('Isi tanggal dahulu!', 'error'); return; }
   const rows = [];
-  Object.entries(stokRowData).forEach(([rowId, data]) => {
-    if (!document.getElementById('stokRow-' + rowId)) return; // sudah dihapus
-    const jml = parseInt(document.getElementById('sJml-' + rowId)?.value) || 0;
-    if (data.item && jml > 0) {
-      rows.push({
-        Tanggal: tgl,
-        Keterangan: ket,
-        ID: data.item.ID,
-        Nama: data.item.Nama,
-        Ukuran: data.item.Ukuran,
-        JumlahMasuk: jml,
-      });
-    }
+  document.querySelectorAll('[id^="sId-"]').forEach(el => {
+    const n = el.id.split('-').pop();
+    const id = el.value.trim();
+    const nama = document.getElementById('sNama-' + n)?.value.trim();
+    const ukuran = document.getElementById('sUkuran-' + n)?.value.trim();
+    const jml = parseInt(document.getElementById('sJml-' + n)?.value) || 0;
+    if (id && jml > 0) rows.push({ Tanggal: tgl, Keterangan: ket, ID: id, Nama: nama, Ukuran: ukuran, JumlahMasuk: jml });
   });
-  if (!rows.length) { showToast('Pilih seragam dan isi jumlah minimal 1 item!', 'error'); return; }
+  if (!rows.length) { showToast('Tambahkan minimal 1 item stok!', 'error'); return; }
   showLoading();
   const result = await apiPost({ action: 'simpanStok', rows });
   hideLoading();
   if (result?.success || result === null) {
-    showToast(result?.success ? 'Stok berhasil disimpan!' : 'Stok tersimpan!', 'success');
+    showToast(result?.success ? 'Stok berhasil disimpan!' : 'Demo: stok tersimpan lokal', 'success');
     document.getElementById('stokRows').innerHTML = '';
     stokRowCount = 0;
-    Object.keys(stokRowData).forEach(k => delete stokRowData[k]);
     tambahStokRow();
     loadStokTable();
   } else {
-    showToast('Gagal menyimpan stok: ' + (result?.error||''), 'error');
+    showToast('Gagal menyimpan stok', 'error');
   }
 }
 async function loadStokTable() {
   const tbody = document.getElementById('stokTableBody');
-  if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Memuat...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Memuat...</td></tr>';
   let data = await apiFetch({ action: 'getStok' });
   if (!data) {
-    if (tbody) tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat stok.</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat stok.</p></div></td></tr>';
     return;
   }
   allStok = data;
@@ -1707,9 +1393,8 @@ document.getElementById('stokTanggal').value = today;
 document.getElementById('filterDari').value = '';
 document.getElementById('filterSampai').value = '';
 
-// Load beranda di awal + preload stok untuk autocomplete
+// Load beranda di awal
 loadBeranda();
-apiFetch({ action: 'getStok' }).then(d => { if (d) allStok = d; });
 tambahStokRow();
 </script>
 </body>
