@@ -655,7 +655,7 @@
         <div id="pSeragamList" class="pesanan-seragam-list">
           <div class="empty-state"><div class="emoji">👕</div><p>Pilih unit terlebih dahulu</p></div>
         </div>
-        <button class="btn btn-outline" id="btnTambahSeragam" style="display:none;margin-bottom:14px;" onclick="tambahSeragamRow()">+ Tambah Item Seragam</button>
+
 
         <div class="total-box">
           <span class="label">Total Pembayaran</span>
@@ -711,16 +711,16 @@
           <table>
             <thead>
               <tr>
-                <th>Timestamp</th>
                 <th>Nama Siswa</th>
                 <th>Kelas</th>
-                <th>ID</th>
+                <th>Total Pembayaran</th>
+                <th>Status</th>
                 <th>Seragam</th>
                 <th>Ukuran</th>
                 <th>Jml Ready</th>
                 <th>Jml PO</th>
-                <th>Total</th>
-                <th>Status</th>
+                <th>Harga Satuan</th>
+                <th>Total Harga</th>
               </tr>
             </thead>
             <tbody id="laporanTableBody">
@@ -743,7 +743,7 @@
 // KONFIGURASI
 // ──────────────────────────────────────────
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz1YrUNcVP5qcNSqDK6IgOqNxLp-z7gLYczyZ-HGRs_THIqaB-e3RzvlnBC4ZgEF5aKDw/exec',
 };
 
 const KELAS_MAP = {
@@ -822,11 +822,11 @@ async function apiPost(body) {
   try {
     const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     return await res.json();
   } catch(e) {
+    console.error('apiPost error:', e);
     return null;
   }
 }
@@ -837,7 +837,11 @@ async function apiPost(body) {
 async function loadBeranda() {
   showLoading();
   let data = await apiFetch({ action: 'getPesanan' });
-  if (!data) data = getDummyPesanan(); // demo fallback
+  if (!data) {
+    hideLoading();
+    document.getElementById('berandaTableBody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat data. Cek koneksi.</p></div></td></tr>';
+    return;
+  }
   allPesanan = data;
 
   const belum = data.filter(r => r.StatusPembayaran === 'Belum Pembayaran');
@@ -854,7 +858,7 @@ async function loadBeranda() {
 
   const tbody = document.getElementById('berandaTableBody');
   if (!belum.length) {
-    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">✅</div><p>Semua pesanan sudah terbayar!</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="emoji">✅</div><p>Tidak ada siswa yang belum melakukan pembayaran</p></div></td></tr>';
   } else {
     tbody.innerHTML = belum.map((r, i) => `
       <tr>
@@ -958,7 +962,10 @@ async function loadStokTable() {
   const tbody = document.getElementById('stokTableBody');
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px;">Memuat...</td></tr>';
   let data = await apiFetch({ action: 'getStok' });
-  if (!data) data = getDummyStok();
+  if (!data) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat stok.</p></div></td></tr>';
+    return;
+  }
   allStok = data;
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="emoji">📦</div><p>Belum ada data stok</p></div></td></tr>';
@@ -986,70 +993,151 @@ function onUnitChangePetugas() {
     o.value = k; o.textContent = k;
     sel.appendChild(o);
   });
-  pSeragamRows = [];
+  pPesanan = {};
+  pOpenGroups = {};
   renderPSeragamList();
-  document.getElementById('btnTambahSeragam').style.display = unit ? 'inline-flex' : 'none';
 }
 
 async function loadStokForPesanan() {
   let data = await apiFetch({ action: 'getStok' });
-  allStok = data || getDummyStok();
+  if (data) allStok = data;
 }
 
-function tambahSeragamRow() {
-  const unit = document.getElementById('pUnit').value;
-  if (!unit) { showToast('Pilih unit dahulu!', 'error'); return; }
-  const filtered = allStok.filter(s => s.ID.toUpperCase().startsWith(unit + '-'));
-  const rid = Date.now();
-  pSeragamRows.push({ rid, seragamId: '', qty: 1, stok: allStok });
-  renderPSeragamList();
-  updatePTotal();
-}
+// Pesanan petugas: accordion same as web_ortu
+// pPesanan = { "ID_Ukuran": { item, qty } }
+let pPesanan = {};
+let pOpenGroups = {};
 
 function renderPSeragamList() {
   const unit = document.getElementById('pUnit').value;
-  const filtered = allStok.filter(s => s.ID.toUpperCase().startsWith(unit + '-'));
   const container = document.getElementById('pSeragamList');
-  if (!pSeragamRows.length) {
-    container.innerHTML = '<div class="empty-state"><div class="emoji">👕</div><p>Klik "+ Tambah Item Seragam" untuk menambahkan</p></div>';
+  if (!unit) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">👕</div><p>Pilih unit dulu</p></div>';
     return;
   }
-  container.innerHTML = pSeragamRows.map((row, i) => `
-    <div class="pesanan-seragam-row">
-      <div class="select-wrap">
-        <select onchange="onPSeragamChange(${i}, this.value)">
-          <option value="">-- Pilih Seragam --</option>
-          ${filtered.map(s => `<option value="${s.ID}" ${s.ID === row.seragamId ? 'selected' : ''}>${s.Nama} (${s.Ukuran||'-'}) — Stok: ${s.Stok}</option>`).join('')}
-        </select>
+  const filtered = allStok.filter(s => s.ID.toUpperCase().startsWith(unit.toUpperCase() + '-'));
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">😔</div><p>Tidak ada stok untuk unit ' + unit + '</p></div>';
+    return;
+  }
+
+  // Group by Nama
+  const groups = {};
+  filtered.forEach(item => {
+    if (!groups[item.Nama]) groups[item.Nama] = [];
+    groups[item.Nama].push(item);
+  });
+
+  container.innerHTML = '';
+  Object.entries(groups).forEach(([namaGroup, items]) => {
+    const groupKey = namaGroup.replace(/[^a-z0-9]/gi, '_');
+    const selectedCount = items.filter(it => !!pPesanan[it.ID + '_' + it.Ukuran]).length;
+    const isOpen = selectedCount > 0 || pOpenGroups[groupKey];
+
+    const itemsHTML = items.map(item => {
+      const stok = parseInt(item.Stok) || 0;
+      const key = item.ID + '_' + item.Ukuran;
+      const isSelected = !!pPesanan[key];
+      const qty = pPesanan[key]?.qty || 1;
+      const safeId = key.replace(/[^a-z0-9]/gi, '_');
+      let stokChip = stok > 5
+        ? `<span class="meta-chip chip-stok-ok">Stok: ${stok}</span>`
+        : stok > 0
+        ? `<span class="meta-chip chip-stok-low">Stok: ${stok} (terbatas)</span>`
+        : `<span class="meta-chip chip-stok-empty">Stok Habis (PO)</span>`;
+      return `
+        <div class="seragam-item${isSelected ? ' selected' : ''}" id="pitem-${safeId}">
+          <div class="seragam-item-header" onclick="pToggleItem('${item.ID}','${item.Ukuran}')">
+            <div class="seragam-checkbox">${isSelected ? '✓' : ''}</div>
+            <div class="seragam-info">
+              <div class="seragam-name">Ukuran ${item.Ukuran || '-'}</div>
+              <div class="seragam-meta">
+                <span class="meta-chip chip-harga">${formatRp(item.Harga)}</span>
+                ${stokChip}
+              </div>
+            </div>
+          </div>
+          <div class="seragam-detail">
+            <label style="margin-bottom:6px;">Jumlah:</label>
+            <div class="qty-control">
+              <button class="qty-btn" onclick="pChangeQty('${item.ID}','${item.Ukuran}',-1)">−</button>
+              <span class="qty-num" id="pqty-${safeId}">${qty}</span>
+              <button class="qty-btn" onclick="pChangeQty('${item.ID}','${item.Ukuran}',1)">+</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'seragam-group' + (isOpen ? ' open' : '') + (selectedCount > 0 ? ' has-selected' : '');
+    groupDiv.id = 'pgroup-' + groupKey;
+    groupDiv.innerHTML = `
+      <div class="seragam-group-header" onclick="pToggleGroup('${groupKey}')">
+        <div class="seragam-group-title">
+          👕 ${namaGroup}
+          ${selectedCount > 0 ? `<span class="badge-selected">${selectedCount} ukuran dipilih</span>` : ''}
+        </div>
+        <span class="seragam-group-arrow">▼</span>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <button class="btn btn-outline btn-sm" onclick="changePQty(${i},-1)">−</button>
-        <span style="font-family:Nunito;font-weight:900;min-width:28px;text-align:center;">${row.qty}</span>
-        <button class="btn btn-outline btn-sm" onclick="changePQty(${i},1)">+</button>
-      </div>
-      <button class="btn btn-danger btn-sm" onclick="hapusPSeragam(${i})">🗑</button>
-    </div>
-  `).join('');
+      <div class="seragam-group-body">${itemsHTML}</div>`;
+    container.appendChild(groupDiv);
+  });
   updatePTotal();
 }
 
-function onPSeragamChange(i, val) {
-  pSeragamRows[i].seragamId = val;
+function pToggleGroup(groupKey) {
+  const groupDiv = document.getElementById('pgroup-' + groupKey);
+  const isOpen = groupDiv.classList.toggle('open');
+  pOpenGroups[groupKey] = isOpen;
+}
+
+function pToggleItem(id, ukuran) {
+  const key = id + '_' + ukuran;
+  if (pPesanan[key]) {
+    delete pPesanan[key];
+  } else {
+    const item = allStok.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
+    pPesanan[key] = { item, qty: 1 };
+  }
+  const safeId = key.replace(/[^a-z0-9]/gi, '_');
+  const div = document.getElementById('pitem-' + safeId);
+  const cb = div.querySelector('.seragam-checkbox');
+  const isNow = !!pPesanan[key];
+  div.classList.toggle('selected', isNow);
+  cb.textContent = isNow ? '✓' : '';
+
+  // Update group badge
+  const item = allStok.find(s => s.ID === id && String(s.Ukuran) === String(ukuran));
+  if (item) {
+    const groupKey = item.Nama.replace(/[^a-z0-9]/gi, '_');
+    const groupDiv = document.getElementById('pgroup-' + groupKey);
+    if (groupDiv) {
+      const groupItems = allStok.filter(s => s.Nama === item.Nama);
+      const selectedCount = groupItems.filter(it => !!pPesanan[it.ID + '_' + it.Ukuran]).length;
+      groupDiv.classList.toggle('has-selected', selectedCount > 0);
+      const titleEl = groupDiv.querySelector('.seragam-group-title');
+      const oldBadge = titleEl.querySelector('.badge-selected');
+      if (oldBadge) oldBadge.remove();
+      if (selectedCount > 0) titleEl.insertAdjacentHTML('beforeend', `<span class="badge-selected">${selectedCount} ukuran dipilih</span>`);
+    }
+  }
   updatePTotal();
 }
-function changePQty(i, delta) {
-  pSeragamRows[i].qty = Math.max(1, (pSeragamRows[i].qty || 1) + delta);
-  renderPSeragamList();
+
+function pChangeQty(id, ukuran, delta) {
+  const key = id + '_' + ukuran;
+  if (!pPesanan[key]) return;
+  let qty = pPesanan[key].qty + delta;
+  if (qty < 1) qty = 1;
+  pPesanan[key].qty = qty;
+  document.getElementById('pqty-' + key.replace(/[^a-z0-9]/gi, '_')).textContent = qty;
+  updatePTotal();
 }
-function hapusPSeragam(i) {
-  pSeragamRows.splice(i, 1);
-  renderPSeragamList();
-}
+
 function updatePTotal() {
   let total = 0;
-  pSeragamRows.forEach(row => {
-    const item = allStok.find(s => s.ID === row.seragamId);
-    if (item) total += (item.Harga || 0) * row.qty;
+  Object.values(pPesanan).forEach(p => {
+    if (p.item) total += (p.item.Harga || 0) * p.qty;
   });
   document.getElementById('pTotal').textContent = formatRp(total);
 }
@@ -1060,16 +1148,16 @@ async function simpanPesananPetugas() {
   const kelas = document.getElementById('pKelas').value;
   const status = document.getElementById('pStatus').value;
   if (!nama || !unit || !kelas) { showToast('Lengkapi data siswa!', 'error'); return; }
-  const validRows = pSeragamRows.filter(r => r.seragamId);
-  if (!validRows.length) { showToast('Tambahkan minimal 1 seragam!', 'error'); return; }
+  const validEntries = Object.values(pPesanan).filter(p => p.item);
+  if (!validEntries.length) { showToast('Pilih minimal 1 seragam!', 'error'); return; }
 
   const now = new Date();
   const ts = now.toLocaleString('id-ID');
-  const rows = validRows.map(row => {
-    const item = allStok.find(s => s.ID === row.seragamId);
+  const rows = validEntries.map(p => {
+    const { item, qty } = p;
     const stok = parseInt(item?.Stok) || 0;
-    const ready = Math.min(row.qty, stok);
-    const po = Math.max(0, row.qty - stok);
+    const ready = Math.min(qty, stok);
+    const po = Math.max(0, qty - stok);
     return {
       Tanggal: ts,
       NamaAnak: nama,
@@ -1079,7 +1167,7 @@ async function simpanPesananPetugas() {
       Ukuran: item.Ukuran,
       JumlahReady: ready,
       JumlahPO: po,
-      TotalBayar: (item.Harga || 0) * row.qty,
+      TotalBayar: (item.Harga || 0) * qty,
       StatusPembayaran: status,
     };
   });
@@ -1087,14 +1175,18 @@ async function simpanPesananPetugas() {
   showLoading();
   const result = await apiPost({ action: 'simpanPesanan', rows });
   hideLoading();
-  showToast(result?.success ? 'Pesanan berhasil disimpan!' : 'Demo: pesanan tercatat', 'success');
+  if (result?.error) {
+    showToast('Gagal simpan: ' + result.error, 'error');
+    return;
+  }
+  showToast('Pesanan berhasil disimpan!', 'success');
   // Reset form
   document.getElementById('pNamaAnak').value = '';
   document.getElementById('pUnit').value = '';
   document.getElementById('pKelas').innerHTML = '<option value="">-- Pilih Unit Dulu --</option>';
-  pSeragamRows = [];
+  pPesanan = {};
+  pOpenGroups = {};
   renderPSeragamList();
-  document.getElementById('btnTambahSeragam').style.display = 'none';
   document.getElementById('pTotal').textContent = 'Rp 0';
 }
 
@@ -1109,7 +1201,11 @@ async function loadLaporan() {
   const statusFilter = document.getElementById('filterStatus').value;
 
   let data = await apiFetch({ action: 'getLaporan', dari, sampai, sort, status: statusFilter });
-  if (!data) data = getDummyPesanan();
+  if (!data) {
+    hideLoading();
+    document.getElementById('laporanTableBody').innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="emoji">❌</div><p style="color:red">Gagal memuat laporan.</p></div></td></tr>';
+    return;
+  }
   allLaporan = data;
 
   // Filter lokal (jika API belum diimplementasi filter)
@@ -1130,24 +1226,51 @@ async function loadLaporan() {
     return;
   }
   let totalAll = 0;
-  tbody.innerHTML = data.map(r => {
+  // Group by NamaAnak+NoNota for total per siswa
+  const totalPerSiswa = {};
+  data.forEach(r => {
+    const key = r.NamaAnak + '|' + r.Kelas;
+    totalPerSiswa[key] = (totalPerSiswa[key] || 0) + (parseInt(r.TotalBayar) || 0);
+  });
+
+  // Track rendered siswa for rowspan
+  const renderedSiswa = {};
+  const rows = [];
+  data.forEach(r => {
     totalAll += parseInt(r.TotalBayar) || 0;
+    const siswaKey = r.NamaAnak + '|' + r.Kelas;
+    const jmlItem = parseInt(r.JumlahReady || 0) + parseInt(r.JumlahPO || 0);
+    const hargaSatuan = jmlItem > 0 ? Math.round((parseInt(r.TotalBayar) || 0) / jmlItem) : (parseInt(r.TotalBayar) || 0);
     const stBadge = r.StatusPembayaran === 'Belum Pembayaran'
       ? `<span class="status-badge status-belum">⏳ Belum Bayar</span>`
       : r.StatusPembayaran === 'Transfer'
       ? `<span class="status-badge status-transfer">🏦 Transfer</span>`
       : `<span class="status-badge status-cash">💵 Cash</span>`;
+    rows.push({ r, siswaKey, jmlItem, hargaSatuan, stBadge });
+  });
+
+  // Count per siswa for rowspan
+  const siswaCount = {};
+  rows.forEach(({ siswaKey }) => siswaCount[siswaKey] = (siswaCount[siswaKey] || 0) + 1);
+
+  tbody.innerHTML = rows.map(({ r, siswaKey, jmlItem, hargaSatuan, stBadge }) => {
+    const isFirst = !renderedSiswa[siswaKey];
+    if (isFirst) renderedSiswa[siswaKey] = true;
+    const rowspan = siswaCount[siswaKey];
+    const namaKelasCell = isFirst
+      ? `<td rowspan="${rowspan}" style="vertical-align:middle"><strong>${r.NamaAnak}</strong></td>
+         <td rowspan="${rowspan}" style="vertical-align:middle">${r.Kelas}</td>
+         <td rowspan="${rowspan}" style="vertical-align:middle;text-align:right;font-weight:800;">${formatRp(totalPerSiswa[siswaKey])}</td>
+         <td rowspan="${rowspan}" style="vertical-align:middle;text-align:center">${stBadge}</td>`
+      : '';
     return `<tr>
-      <td style="font-size:0.75rem;white-space:nowrap">${r.Tanggal||'-'}</td>
-      <td><strong>${r.NamaAnak}</strong></td>
-      <td>${r.Kelas}</td>
-      <td><span style="background:#1d3a5c;padding:2px 6px;border-radius:4px;font-size:0.75rem;">${r.ID}</span></td>
+      ${namaKelasCell}
       <td>${r.NamaSeragam}</td>
       <td>${r.Ukuran||'-'}</td>
       <td>${r.JumlahReady||0}</td>
       <td>${(r.JumlahPO||0)>0?'<span style="color:var(--warning);font-weight:700;">'+r.JumlahPO+'</span>':'0'}</td>
+      <td>${formatRp(hargaSatuan)}</td>
       <td><strong>${formatRp(r.TotalBayar)}</strong></td>
-      <td>${stBadge}</td>
     </tr>`;
   }).join('');
 
@@ -1159,12 +1282,54 @@ async function loadLaporan() {
 
 function downloadExcel() {
   if (!allLaporan.length) { showToast('Tampilkan laporan dulu!', 'error'); return; }
-  const headers = ['Timestamp','Nama Siswa','Kelas','ID','Seragam','Ukuran','Jml Ready','Jml PO','Total Bayar','Status Pembayaran'];
-  const rows = allLaporan.map(r => [
-    r.Tanggal, r.NamaAnak, r.Kelas, r.ID, r.NamaSeragam, r.Ukuran,
-    r.JumlahReady, r.JumlahPO, r.TotalBayar, r.StatusPembayaran
-  ]);
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Total per siswa
+  const totalPerSiswa = {};
+  allLaporan.forEach(r => {
+    const key = r.NamaAnak + '|' + r.Kelas;
+    totalPerSiswa[key] = (totalPerSiswa[key] || 0) + (parseInt(r.TotalBayar) || 0);
+  });
+
+  const headers = ['Nama Siswa','Kelas','Seragam','Ukuran','Jml Ready','Jml PO','Harga Satuan','Total Harga','Total Pembayaran Siswa','Status Pembayaran','Timestamp'];
+  const dataRows = allLaporan.map(r => {
+    const jmlItem = parseInt(r.JumlahReady || 0) + parseInt(r.JumlahPO || 0);
+    const hargaSatuan = jmlItem > 0 ? Math.round((parseInt(r.TotalBayar) || 0) / jmlItem) : (parseInt(r.TotalBayar) || 0);
+    const siswaKey = r.NamaAnak + '|' + r.Kelas;
+    return [
+      r.NamaAnak, r.Kelas, r.NamaSeragam, r.Ukuran,
+      r.JumlahReady, r.JumlahPO,
+      hargaSatuan, parseInt(r.TotalBayar) || 0,
+      totalPerSiswa[siswaKey],
+      r.StatusPembayaran, r.Tanggal
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+
+  // Merge nama siswa cells
+  const merges = [];
+  let startRow = 1;
+  let currentKey = allLaporan[0].NamaAnak + '|' + allLaporan[0].Kelas;
+  for (let i = 1; i <= allLaporan.length; i++) {
+    const key = i < allLaporan.length ? allLaporan[i].NamaAnak + '|' + allLaporan[i].Kelas : null;
+    if (key !== currentKey) {
+      if (i - startRow > 1) {
+        // Merge Nama Siswa (col 0), Kelas (col 1), Total Pembayaran (col 8), Status (col 9)
+        [0, 1, 8, 9].forEach(col => {
+          merges.push({ s: { r: startRow, c: col }, e: { r: i - 1, c: col } });
+        });
+      }
+      startRow = i;
+      currentKey = key;
+    }
+  }
+  ws['!merges'] = merges;
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:20},{wch:15},{wch:25},{wch:10},{wch:10},{wch:8},{wch:15},{wch:15},{wch:20},{wch:15},{wch:20}
+  ];
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Laporan');
   XLSX.writeFile(wb, 'laporan-seragam-' + new Date().toISOString().slice(0,10) + '.xlsx');
